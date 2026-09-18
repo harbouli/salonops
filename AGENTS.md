@@ -150,6 +150,115 @@ pnpm --filter @salonops/database db:studio
 
 ---
 
+## 🌿 Git Strategy: Branch Naming, Pulling & Pushing Protocols
+
+All AI agents and engineers working on SalonOps must follow this strict Git workflow to keep repository history clean, traceable, and protected.
+
+### 1. Branch Hierarchy & Environments
+
+```text
+  main (Production)
+   ▲
+   │  (Release promotion)
+  staging (Staging / Pre-prod)
+   ▲
+   │  (Sprint release)
+  develop (Active Integration Base)
+   ▲
+   ├── feat/SALON-26-appointment-redlock-engine
+   ├── feat/SALON-30-caisse-split-ledger
+   └── fix/SALON-29-buffer-collision
+```
+
+- **`main`**: Production releases. **Protected**. Direct pushes forbidden. Merges only from `staging`.
+- **`staging`**: Pre-production integration. **Protected**. Merges only from `develop`.
+- **`develop`**: Primary development integration branch. **All tasks branch off from and merge back into `develop`**.
+
+---
+
+### 2. From Where to Pull (Starting Work)
+
+Before writing any code or creating a branch, always ensure your local `develop` branch is up to date:
+
+```bash
+# 1. Switch to develop
+git checkout develop
+
+# 2. Pull the latest commits from origin
+git pull origin develop
+
+# 3. Verify clean working tree
+git status
+```
+
+---
+
+### 3. Branch Naming Standard
+
+Always create a dedicated branch off `develop` using the following naming structure:
+
+$$\text{<type>/SALON-<issue\_id>-<kebab-case-description>}$$
+
+#### Allowed Branch Types:
+| Prefix | Purpose | Example |
+| :--- | :--- | :--- |
+| `feat/` | New feature or functional enhancement | `feat/SALON-26-appointment-redlock-engine` |
+| `fix/` | Bug or defect fix | `fix/SALON-29-buffer-collision-overlap` |
+| `refactor/` | Code change that neither fixes a bug nor adds a feature | `refactor/SALON-24-clean-architecture-layers` |
+| `test/` | Adding missing tests or correcting existing tests | `test/SALON-30-split-payment-unit-tests` |
+| `chore/` | Maintenance, dependencies, or monorepo configuration | `chore/SALON-35-redis-rate-limiter-config` |
+| `docs/` | Documentation changes only | `docs/SALON-36-seed-fixtures-guide` |
+
+#### Create Branch Command:
+```bash
+# Example for task SALON-26
+git checkout -b feat/SALON-26-appointment-redlock-engine
+```
+
+---
+
+### 4. Commit Message Standard
+
+Follow **Conventional Commits** and always reference the Plane task identifier:
+
+```text
+<type>(<scope>): <short description> (SALON-<issue_id>)
+
+[optional body explaining architectural decisions]
+```
+
+#### Examples:
+```bash
+git commit -m "feat(api): implement appointment aggregate and redlock engine (SALON-26)"
+git commit -m "fix(api): adjust chemical buffer overlap calculation in timeslot (SALON-29)"
+git commit -m "refactor(domain): introduce money value object for MAD currency (SALON-30)"
+```
+
+---
+
+### 5. How to Push & Open Pull Requests
+
+Always run local validations **before** pushing:
+
+```bash
+# 1. Validate types across all monorepo packages
+pnpm typecheck
+
+# 2. Run backend test suite
+pnpm --filter @salonops/api test
+
+# 3. Push branch to remote with upstream tracking
+git push -u origin <your-branch-name>
+```
+
+#### Pull Request (PR) Rules:
+1. **Target Base:** Always target **`develop`** (never `main` or `staging`).
+2. **PR Title Format:** `[SALON-<id>] <Concise summary>` (e.g. `[SALON-26] Core Appointment Aggregate & Concurrency Redlock Engine`).
+3. **PR Description:** Reference the Plane task URL, outline layer changes (`domain/`, `application/`, `infrastructure/`, `presentation/`), and include test verification commands.
+4. **CI Requirement:** All automated GitHub Actions checks (`Lint & Typecheck`, `Production Build & Schema Validation`, `Docker Build Validation`) must be 100% green before merging.
+
+---
+
 ## 📋 Agent Rules of Engagement
 
 1. **Respect Monorepo Workspaces:** Use `workspace:*` dependencies. Do not install duplicate dependencies across packages.
@@ -157,3 +266,4 @@ pnpm --filter @salonops/database db:studio
 3. **Dependency Injection:** When adding a new use case or repository, declare its port interface first, implement the adapter, and register it in `apps/api/src/infrastructure/container.ts`.
 4. **Unit Tests for Domain & Use Cases:** When creating new business rules or use cases, write tests under `apps/api/test/` using `node:test` and `node:assert/strict` with mocked ports to verify behavior without requiring a running database.
 5. **No Ad-Hoc CSS / Framework Breakage:** For web apps (`admin-dashboard`, `client-web`), preserve existing styling conventions (Tailwind/Vanilla CSS) and Vite build setups.
+
