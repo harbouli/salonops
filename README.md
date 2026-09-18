@@ -78,7 +78,9 @@ salonops/
 │   ├── shared-types/              # Shared TypeScript models, enums, DTOs & interfaces
 │   ├── config-typescript/         # Reusable tsconfig base, node, react & react-native presets
 │   └── config-eslint/             # Shared ESLint configuration presets
-├── docker-compose.yml             # Local PostgreSQL 16, Redis 7 & MinIO S3 services
+├── docker-compose.yml             # Local infrastructure (PostgreSQL 16, Redis 7 & MinIO S3)
+├── docker-compose.dev.yml         # Full-stack containerized development with live HMR
+├── docker-compose.prod.yml        # Full-stack production with Nginx web servers & healthchecks
 ├── pnpm-workspace.yaml            # pnpm workspace definition
 ├── turbo.json                     # Turborepo task pipeline & caching
 ├── package.json                   # Root scripts & dependencies
@@ -101,6 +103,18 @@ salonops/
 
 ---
 
+## 🐳 Docker Deployment Modes
+
+SalonOps provides three flexible Docker orchestration modes:
+
+| Mode | Command | Scope & Purpose |
+|---|---|---|
+| **1. Infra-Only (Recommended)** | `docker compose up -d` | Runs Postgres 16, Redis 7 & MinIO S3 in background while you run apps on host with `pnpm dev` |
+| **2. Full-Stack Dev** | `docker compose -f docker-compose.dev.yml up` | Completely containerized development with live code mounts, `tsx watch` & Vite HMR |
+| **3. Full-Stack Prod** | `docker compose -f docker-compose.prod.yml up -d` | Hardened production containers, optimized Nginx web servers, healthchecks & restart policies |
+
+---
+
 ## 🚀 Quick Start
 
 ### 1. Prerequisites
@@ -110,14 +124,21 @@ salonops/
 
 ### 2. Start Local Infrastructure
 ```bash
-# Start PostgreSQL, Redis, and MinIO S3 (with automatic bucket initialization)
+# Option A: Start backend infrastructure dependencies only
 docker compose up -d
 
-# MinIO Web Console: http://localhost:9001 (User: minioadmin / Pass: minioadmin)
-# MinIO S3 API:      http://localhost:9000
+# Option B: Run entire monorepo in containerized development with hot-reloading
+docker compose -f docker-compose.dev.yml up
+
+# Access Services:
+# - MinIO Web Console: http://localhost:9001 (User: minioadmin / Pass: minioadmin)
+# - MinIO S3 API:      http://localhost:9000
+# - Express API:       http://localhost:4000
+# - Admin Dashboard:   http://localhost:3000
+# - Client Web:        http://localhost:3001
 ```
 
-### 3. Installation
+### 3. Installation (for Host Development)
 ```bash
 # Clone the repository
 git clone https://github.com/harbouli/salonops.git
