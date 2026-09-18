@@ -3,7 +3,7 @@
 [![CI Status](https://img.shields.io/badge/CI-GitHub%20Actions-22c55e?logo=github-actions)](.github/workflows/ci.yml)
 [![Package Manager](https://img.shields.io/badge/pnpm-v11.21.0-orange?logo=pnpm)](https://pnpm.io/)
 [![Expo](https://img.shields.io/badge/Expo-SDK%2057-000020?logo=expo)](https://expo.dev/)
-[![Express](https://img.shields.io/badge/Backend-Express.js%20(Node%2022)-black?logo=express)](https://expressjs.com/)
+[![Express](https://img.shields.io/badge/Backend-Express.js%20(Node%2024)-black?logo=express)](https://expressjs.com/)
 [![Drizzle ORM](https://img.shields.io/badge/ORM-Drizzle%20ORM-C5F74F?logo=drizzle)](https://orm.drizzle.team/)
 [![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL%2016-336791?logo=postgresql)](https://www.postgresql.org/)
 [![License](https://img.shields.io/badge/License-Proprietary-blue)](#)
@@ -18,9 +18,9 @@ Running a salon in Morocco involves distinct operational realities that Western 
 1. **Per-Stylist Client Loyalty:** Moroccan clients book specific artists (*Fatima*, *Salma*, *Youssef*), not generic salon chairs.
 2. **Buffer Times & Collision Prevention:** Chemical processes (lissage, balayage) require strict service durations and cleaning buffers to prevent floor chaos.
 3. **No-Show Mitigation:** 15–25% of salon slots are lost to no-shows. Automated WhatsApp & SMS notifications at 24h and 2h recover thousands of MAD monthly.
-4. **"Notebook Killer" Color Formula Vault:** Stylists maintain paper notebooks for client bleach ratios, developer volumes, and processing times. SalonOps digitizes this with Cloudflare R2 transformation photos.
+4. **"Notebook Killer" Color Formula Vault:** Stylists maintain paper notebooks for client bleach ratios, developer volumes, and processing times. SalonOps digitizes this with MinIO S3-compatible transformation photo storage.
 5. **Moroccan Payment Realities:** Seamless split checkout between cash, TPE bank card, and direct stylist tips.
-26: 6. **Bilingual Floor Experience:** Instant toggle between French and Moroccan Darija with native Right-to-Left (RTL) layout support.
+6. **Bilingual Floor Experience:** Instant toggle between French and Moroccan Darija with native Right-to-Left (RTL) layout support.
 
 ---
 
@@ -35,10 +35,10 @@ graph TD
     end
 
     subgraph "Backend Services"
-        API["⚙️ <b>apps/api</b><br/>Node.js 22 LTS + Express.js<br/>JWT Auth, Stylist RBAC & Concurrency Engine"]
+        API["⚙️ <b>apps/api</b><br/>Node.js 24 LTS + Express.js<br/>JWT Auth, Stylist RBAC & Concurrency Engine"]
         REDIS[("⚡ <b>Redis 7</b><br/>Redlock Slot Reservation<br/>Rolling Revenue Cache")]
         POSTGRES[("🗄️ <b>PostgreSQL 16</b><br/>Multi-Branch Relational Data")]
-        R2["☁️ <b>Cloudflare R2</b><br/>Zero-Egress Transformation Photos"]
+        MINIO[("🪣 <b>MinIO S3</b><br/>Self-Hosted S3 Object Storage<br/>Client Transformation Photos")]
     end
 
     subgraph "Shared Packages (packages/)"
@@ -54,7 +54,7 @@ graph TD
     API --> TYPES
     API --> DB
     API --> REDIS
-    API --> R2
+    API --> MINIO
     DB --> POSTGRES
 ```
 
@@ -78,6 +78,7 @@ salonops/
 │   ├── shared-types/              # Shared TypeScript models, enums, DTOs & interfaces
 │   ├── config-typescript/         # Reusable tsconfig base, node, react & react-native presets
 │   └── config-eslint/             # Shared ESLint configuration presets
+├── docker-compose.yml             # Local PostgreSQL 16, Redis 7 & MinIO S3 services
 ├── pnpm-workspace.yaml            # pnpm workspace definition
 ├── turbo.json                     # Turborepo task pipeline & caching
 ├── package.json                   # Root scripts & dependencies
@@ -92,32 +93,41 @@ salonops/
 |---|---|---|
 | **Monorepo Engine** | **pnpm v11 + Turborepo** | Fast workspace hoisting, symlinked internal packages, zero-overhead task caching |
 | **Mobile App** | **Expo SDK 57 (React Native)** | Offline SQLite support, native camera uploads, RTL Arabic/Darija engine |
-| **Backend API** | **Express.js (Node 22 LTS)** | Helmet, CORS, Argon2/JWT authentication, RBAC authorization guard |
+| **Backend API** | **Express.js (Node 24 LTS)** | Helmet, CORS, Argon2/JWT authentication, RBAC authorization guard |
 | **ORM & Database** | **Drizzle ORM + PostgreSQL 16** | Pure type-safe SQL queries, zero runtime bloat, `drizzle-kit` automated migrations |
 | **Concurrency & Cache** | **Redis 7 (ioredis + Redlock)** | Distributed lock guard eliminating appointment double-booking collisions |
 | **Web Dashboards** | **React 19.3 + Vite + Tailwind** | Sub-second HMR, luxury dark gold aesthetic (`#121214` & `#D4AF37`) |
-| **Storage & Media** | **Cloudflare R2** | High-resolution before/after hair formula transformation photo vault |
+| **Storage & Media** | **MinIO S3 (Object Storage)** | High-resolution before/after hair formula transformation photo vault (S3-compatible with presigned URLs) |
 
 ---
 
 ## 🚀 Quick Start
 
 ### 1. Prerequisites
-- **Node.js**: `v20.0.0` or higher (Node 22 LTS recommended)
+- **Node.js**: `v24.0.0` or higher (Node 24 LTS recommended)
 - **pnpm**: `v11.0.0` or higher (`corepack enable && corepack prepare pnpm@11.21.0 --activate`)
-- **Docker**: For running local PostgreSQL and Redis instances
+- **Docker**: For running local PostgreSQL 16, Redis 7, and MinIO S3 object storage
 
-### 2. Installation
+### 2. Start Local Infrastructure
+```bash
+# Start PostgreSQL, Redis, and MinIO S3 (with automatic bucket initialization)
+docker compose up -d
+
+# MinIO Web Console: http://localhost:9001 (User: minioadmin / Pass: minioadmin)
+# MinIO S3 API:      http://localhost:9000
+```
+
+### 3. Installation
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/salonops.git
+git clone https://github.com/harbouli/salonops.git
 cd salonops
 
-# Install dependencies across all 9 packages
+# Install dependencies across all workspace packages
 pnpm install
 ```
 
-### 3. Environment Configuration
+### 4. Environment Configuration
 Copy `.env.example` templates to `.env`:
 ```bash
 # In packages/database
@@ -127,15 +137,23 @@ cp packages/database/.env.example packages/database/.env
 cp apps/api/.env.example apps/api/.env
 ```
 
-Ensure your `DATABASE_URL` points to your PostgreSQL database:
+Ensure your `apps/api/.env` includes database, Redis, and MinIO S3 credentials:
 ```env
 DATABASE_URL="postgres://postgres:postgres@localhost:5432/salonops"
 REDIS_URL="redis://localhost:6379"
 JWT_SECRET="super-secret-jwt-key-for-moroccan-salon-platform"
 PORT=4000
+
+# MinIO S3 Object Storage
+MINIO_ENDPOINT="localhost"
+MINIO_PORT=9000
+MINIO_USE_SSL=false
+MINIO_ACCESS_KEY="minioadmin"
+MINIO_SECRET_KEY="minioadmin"
+MINIO_BUCKET_NAME="salonops-media"
 ```
 
-### 4. Database Setup (Drizzle ORM)
+### 5. Database Setup (Drizzle ORM)
 ```bash
 # Generate SQL migrations from schema
 pnpm --filter @salonops/database db:generate

@@ -1,6 +1,6 @@
 # `@salonops/api` ⚙️
 
-> **Node.js 22 LTS & Express.js REST API with Drizzle ORM, PostgreSQL 16, and Redis Redlock distributed concurrency locking.**
+> **Node.js 24 LTS & Express.js REST API with Drizzle ORM, PostgreSQL 16, and Redis Redlock distributed concurrency locking.**
 
 ---
 
@@ -10,6 +10,7 @@
 - **Drizzle ORM Integration**: Type-safe relational queries using Drizzle ORM and `postgres` driver.
 - **Strict Stylist RBAC**: Granular role-based access control protecting salon turnover, gross margins, and owner analytics from floor staff.
 - **Collision Prevention & Redlock**: Redis Redlock distributed locking during slot booking prevents double-booking race conditions.
+- **MinIO S3 Storage Ready**: S3-compatible object storage integration for client color formulas and transformation photos.
 - **Security & Headers**: Armed with `helmet`, CORS policy, rate limiting, and argon2 password hashing.
 - **Docker Ready**: Multi-stage production Docker build (`Dockerfile`).
 
@@ -30,7 +31,7 @@ apps/api/
 │   │   ├── appointments.ts      # GET/POST /api/v1/appointments with slot collision check
 │   │   └── clients.ts           # GET/POST /api/v1/clients & hair formula vault
 │   └── server.ts                # Express application bootstrapping & middleware stack
-├── Dockerfile                   # Multi-stage production container build
+├── Dockerfile                   # Multi-stage production container build (Node.js 24 Alpine)
 ├── .dockerignore                # Docker build ignore rules
 ├── .env.example                 # Example environment variables
 ├── package.json                 # API dependencies & scripts
@@ -51,6 +52,14 @@ JWT_SECRET="super-secret-jwt-key-for-moroccan-salon-platform"
 JWT_EXPIRES_IN="15m"
 JWT_REFRESH_EXPIRES_IN="7d"
 CORS_ORIGIN="*"
+
+# MinIO S3 Object Storage
+MINIO_ENDPOINT="localhost"
+MINIO_PORT=9000
+MINIO_USE_SSL=false
+MINIO_ACCESS_KEY="minioadmin"
+MINIO_SECRET_KEY="minioadmin"
+MINIO_BUCKET_NAME="salonops-media"
 ```
 
 ---
