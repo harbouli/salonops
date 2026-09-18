@@ -1,0 +1,17 @@
+{
+  "name": "@salonops/shared-types",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@salonops/config-typescript": "workspace:*",
+    "typescript": "^5.8.2"
+  }
+}

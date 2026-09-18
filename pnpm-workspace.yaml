@@ -1,0 +1,15 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+allowBuilds:
+  argon2: true
+  esbuild: true
+
+onlyBuiltDependencies:
+  - argon2
+  - esbuild
+
+overrides:
+  '@types/react': '~18.3.12'
+  '@types/react-dom': '~18.3.1'

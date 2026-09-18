@@ -1,0 +1,34 @@
+{
+  "tabs": {
+    "agenda": "البرنامج",
+    "clients": "الزبائن",
+    "caisse": "الصندوق",
+    "pitch": "حساب الأرباح"
+  },
+  "header": {
+    "salon": "صالون فاطمة بني ملال",
+    "switchLang": "Français"
+  },
+  "calendar": {
+    "stylists": "الحلاقات",
+    "dayOff": "عطلة",
+    "buffer": "وقت التنظيف والتعقيم",
+    "addAppointment": "موعد جديد"
+  },
+  "client": {
+    "searchPlaceholder": "البحث بالاسم أو الهاتف (06...)",
+    "formulaHistory": "سجل تركيبات الصباغة",
+    "developer": "الأكسيدان",
+    "time": "مدة الانتظار",
+    "notes": "ملاحظات خاصة",
+    "scalpAlert": "تنبيه حساسية الفروة"
+  },
+  "pitch": {
+    "title": "حاسبة خسائر الغياب (No-Show)",
+    "dailyClients": "الزبونات في اليوم",
+    "avgTicket": "متوسط السعر (درهم)",
+    "noShowsWeek": "الغيابات في الأسبوع",
+    "monthlyLoss": "الخسارة الشهرية المقدرة",
+    "recovery": "استرجع استثمارك في 5 أيام مع SalonOps!"
+  }
+}

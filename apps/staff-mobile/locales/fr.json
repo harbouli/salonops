@@ -1,0 +1,34 @@
+{
+  "tabs": {
+    "agenda": "Agenda",
+    "clients": "Fiches Clientes",
+    "caisse": "Caisse",
+    "pitch": "Pitch ROI"
+  },
+  "header": {
+    "salon": "Salon Fatima Béni Mellal",
+    "switchLang": "العربية"
+  },
+  "calendar": {
+    "stylists": "Coiffeuses",
+    "dayOff": "En congé",
+    "buffer": "Buffer nettoyage/rinçage",
+    "addAppointment": "Nouveau RDV"
+  },
+  "client": {
+    "searchPlaceholder": "Rechercher par nom ou tél (06...)",
+    "formulaHistory": "Historique Formules Couleur",
+    "developer": "Oxydant",
+    "time": "Temps de pause",
+    "notes": "Préférences",
+    "scalpAlert": "Alerte Cuir Chevelu"
+  },
+  "pitch": {
+    "title": "Calculateur Pertes No-Shows",
+    "dailyClients": "Clientes / jour",
+    "avgTicket": "Panier moyen (MAD)",
+    "noShowsWeek": "No-shows / semaine",
+    "monthlyLoss": "Perte mensuelle estimée",
+    "recovery": "Rentabilisé en 5 jours avec SalonOps !"
+  }
+}

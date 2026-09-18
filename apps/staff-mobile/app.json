@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "SalonOps Staff",
+    "slug": "salonops-staff",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#121214"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.salonops.staff"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#121214"
+      },
+      "package": "com.salonops.staff"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "SalonOps a besoin de l'accès à votre caméra pour enregistrer les photos avant/après des formules de coloration."
+        }
+      ]
+    ],
+    "scheme": "salonops"
+  }
+}

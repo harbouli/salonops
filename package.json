@@ -1,0 +1,23 @@
+{
+  "name": "salonops",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Mobile-first Moroccan Salon & Barbershop Management Platform",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "clean": "turbo run clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.5",
+    "prettier": "^3.5.3",
+    "turbo": "^2.4.4",
+    "typescript": "^5.8.2"
+  },
+  "packageManager": "pnpm@11.21.0",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
