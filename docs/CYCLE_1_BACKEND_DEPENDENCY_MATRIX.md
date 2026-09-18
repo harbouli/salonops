@@ -3,7 +3,19 @@
 > **Sprint Cycle:** `Cycle 1: Mobile Prototype`  
 > **Project Management:** [Plane Dashboard (SalonOps Morocco)](https://plane.harbouli.dev/trainimaya/projects/ecefc364-a7d7-4bde-9a0d-0c0349676484/cycles/43dfe00e-d4b5-414d-8e3e-182ba9e41716)  
 > **Total Backend Tasks:** 18 tasks  
+> **Architecture Standard:** Clean Architecture, Domain-Driven Design (DDD) & Hexagonal Architecture (Ports and Adapters)  
 > **Team Allocation:** 3 tasks per member across 6 engineers  
+
+---
+
+## 🏛️ Mandatory Backend Architecture Principles
+
+All backend tasks in this sprint must strictly adhere to **Clean Architecture**, **DDD**, and **Hexagonal Architecture**:
+
+1. **Domain Layer (`apps/api/src/domain/`)**: Pure TypeScript business core. **Zero external dependencies** (no Express, Drizzle, SQL, or Redis). Houses Aggregate Roots, Entities, Value Objects (`Money`, `TimeSlot`, `MoroccanPhoneNumber`), Domain Services, Domain Exceptions (`DomainException`), and Outbound Ports (`I...Repository`, `IDistributedLockPort`).
+2. **Application Layer (`apps/api/src/application/`)**: Inbound Ports (Use Case interfaces in `ports/`), Use Case Implementations (`use-cases/`), and DTOs. Orchestrates domain logic and calls outbound ports. Contains **zero HTTP or SQL logic**.
+3. **Infrastructure Layer (`apps/api/src/infrastructure/`)**: Driven Adapters. Drizzle ORM repositories (`persistence/`), Redis/Redlock adapters (`concurrency/`), external integrations (MinIO S3), and the central Composition Root (`container.ts`).
+4. **Presentation Layer (`apps/api/src/presentation/`)**: Driving Adapters. Express REST Controllers (`controllers/`), Route definitions (`routes/`), Zod validation schemas (`validation/`), and centralized error handling middleware (`errorHandlerMiddleware`).
 
 ---
 
@@ -20,38 +32,38 @@
 
 ---
 
-## ⛓️ Full Execution Waves & Dependency Graph
+## ⛓️ Execution Waves & Dependency Graph
 
 ```mermaid
 graph TD
     %% Wave 1: Core Foundation
-    subgraph Wave_1["🌊 Wave 1: Absolute Foundation (Day 1 - 3)"]
-        S24["SALON-24: Express API & Drizzle DB<br/><b>@harbouli</b>"]
+    subgraph Wave_1["🌊 Wave 1: Clean Architecture Foundation (Day 1 - 3)"]
+        S24["SALON-24: Hexagonal Core & Drizzle DB<br/><b>@harbouli</b>"]
     end
 
-    %% Wave 2: Core Auth & Infrastructure Services
-    subgraph Wave_2["🌊 Wave 2: Security, Storage & Tenant Scoping (Day 4 - 6)"]
-        S25["SALON-25: JWT Auth & RBAC Middleware<br/><b>@anas</b>"]
-        S27["SALON-27: MinIO S3 Presigned URLs<br/><b>@ayoub</b>"]
-        S28["SALON-28: Moroccan Phone & Webhooks<br/><b>@salma</b>"]
-        S35["SALON-35: Redis Rate Limiting<br/><b>@bleu-fire</b>"]
+    %% Wave 2: Security, Storage & Tenant Scoping
+    subgraph Wave_2["🌊 Wave 2: Security, Storage & Infrastructure Adapters (Day 4 - 6)"]
+        S25["SALON-25: JWT Auth & RBAC Guard<br/><b>@anas</b>"]
+        S27["SALON-27: MinIO S3 Storage Port & Adapter<br/><b>@ayoub</b>"]
+        S28["SALON-28: Moroccan Phone VO & Webhooks<br/><b>@salma</b>"]
+        S35["SALON-35: Redis Sliding-Window Rate Limiter<br/><b>@bleu-fire</b>"]
         S36["SALON-36: Drizzle Migrations & Seeds<br/><b>@harbouli</b>"]
         S39["SALON-39: Darija/FR Error Normalizer<br/><b>@ayoub</b>"]
     end
 
     %% Wave 3: Intermediate Logic & Multi-Tenancy
-    subgraph Wave_3["🌊 Wave 3: Tenant Scoping & Scheduling Base (Day 7 - 9)"]
-        S33["SALON-33: Multi-Branch Tenant Scoping<br/><b>@ayoub</b>"]
-        S32["SALON-32: Redis Token Revocation<br/><b>@mohammedlelly</b>"]
+    subgraph Wave_3["🌊 Wave 3: Tenant Scoping & Scheduling Domain (Day 7 - 9)"]
+        S33["SALON-33: Multi-Branch Tenant Scoping Guard<br/><b>@ayoub</b>"]
+        S32["SALON-32: Redis Token Blacklist Port<br/><b>@mohammedlelly</b>"]
         S31["SALON-31: Stylist Shift & Day-Off Roster<br/><b>@anas</b>"]
-        S34["SALON-34: Color History & Allergies<br/><b>@salma</b>"]
+        S34["SALON-34: Color History & Allergy Alerts<br/><b>@salma</b>"]
         S38["SALON-38: Diagnostic Health Probes<br/><b>@mohammedlelly</b>"]
     end
 
     %% Wave 4: Business Engine & Buffer Calculations
     subgraph Wave_4["🌊 Wave 4: Buffer Engine & Core Appointments (Day 10 - 13)"]
         S29["SALON-29: Dynamic Buffer Time Engine<br/><b>@bleu-fire</b>"]
-        S26["SALON-26: Prototype REST & Redlock Engine<br/><b>@mohammedlelly</b>"]
+        S26["SALON-26: Appointment Aggregate & Redlock Engine<br/><b>@mohammedlelly</b>"]
     end
 
     %% Wave 5: Operations & Finance
@@ -98,113 +110,159 @@ graph TD
 
 ---
 
-## 📋 Comprehensive Task Details & Implementation Specs
+## 📋 Comprehensive Task Details & Hexagonal Architecture Specs
 
-### 1. `SALON-24` — [BACKEND-01] Express API Foundation, Drizzle PostgreSQL Schema Setup & Monorepo Wiring
+### 1. `SALON-24` — [BACKEND-01] Clean / Hexagonal Architecture Foundation & Database Wiring
 - **Lead:** Mohamed Harbouli (`@harbouli.me`)
 - **Blocked By:** *None* (Genesis Task)
-- **Blocks:** `SALON-25`, `SALON-26`, `SALON-27`, `SALON-28`, `SALON-29`, `SALON-31`, `SALON-33`, `SALON-35`, `SALON-36`, `SALON-38`, `SALON-39`
-- **Target Files:** `apps/api/src/index.ts`, `packages/database/src/schema/index.ts`, `packages/database/src/client.ts`
-- **Key Deliverable:** Base Express router setup, PostgreSQL pool via Drizzle ORM, Zod error interceptor.
+- **Blocks:** `SALON-25` through `SALON-39`
+- **Architectural Layers:**
+  - **Domain:** `domain/exceptions/domain.exception.ts`, base entities & value objects.
+  - **Infrastructure:** `packages/database/src/index.ts`, `infrastructure/container.ts` (Composition Root).
+  - **Presentation:** `src/app.ts`, `presentation/middleware/error-handler.middleware.ts`.
+- **Key Deliverable:** Establish Clean Architecture / Hexagonal layer boundaries, Drizzle PostgreSQL connection pool, and Centralized Domain Exception handler.
 
 ---
 
-### 2. `SALON-25` — [BACKEND-02] JWT Auth & Granular RBAC Middleware
+### 2. `SALON-25` — [BACKEND-02] Authentication & Granular RBAC Guard
 - **Lead:** Anas Dalfag (`@dalfaganis`)
 - **Blocked By:** `SALON-24`
 - **Blocks:** `SALON-26`, `SALON-30`, `SALON-32`, `SALON-33`, `SALON-37`
-- **Target Files:** `apps/api/src/middleware/auth.ts`, `apps/api/src/middleware/rbac.ts`, `apps/api/src/routes/auth.ts`
-- **Key Deliverable:** Argon2 password hashing, dual JWT token rotation (Access + Refresh), Moroccan Salon roles (`SUPER_ADMIN`, `SALON_OWNER`, `SALON_MANAGER`, `STYLIST`, `RECEPTIONIST`, `CLIENT`).
+- **Architectural Layers:**
+  - **Domain:** `domain/ports/password-hasher.port.ts`, `domain/ports/token-service.port.ts`.
+  - **Application:** `application/ports/auth.port.ts`, `application/use-cases/authenticate-user.use-case.ts`.
+  - **Infrastructure:** `infrastructure/security/argon2-password-hasher.adapter.ts`, `infrastructure/security/jwt-token.adapter.ts`.
+  - **Presentation:** `presentation/controllers/auth.controller.ts`, `presentation/routes/auth.routes.ts`, `presentation/middleware/auth.middleware.ts`, `presentation/middleware/rbac.middleware.ts`.
+- **Key Deliverable:** Argon2 password hashing, JWT token generation, and granular RBAC middleware protecting owner analytics from floor staff.
 
 ---
 
-### 3. `SALON-26` — [BACKEND-03] Core Prototype REST Endpoints: Appointments, Services & Stylists
+### 3. `SALON-26` — [BACKEND-03] Core Appointment Aggregate & Concurrency Redlock Engine
 - **Lead:** Mohammed Lelly (`@mohammedlelly2006`)
 - **Blocked By:** `SALON-24`, `SALON-25`, `SALON-29`, `SALON-33`
 - **Blocks:** `SALON-30`, `SALON-40`, `SALON-41`
-- **Target Files:** `apps/api/src/routes/appointments.ts`, `apps/api/src/services/booking.ts`, `apps/api/src/utils/redlock.ts`
-- **Key Deliverable:** Full appointment scheduling, distributed concurrency lock via Redlock to prevent double-booking identical chair/stylist slots.
+- **Architectural Layers:**
+  - **Domain:** `domain/models/appointment.entity.ts`, `domain/value-objects/time-slot.vo.ts`, `domain/services/appointment-collision.service.ts`, `domain/ports/appointment-repository.port.ts`, `domain/ports/distributed-lock.port.ts`.
+  - **Application:** `application/ports/book-appointment.port.ts`, `application/use-cases/book-appointment.use-case.ts`, `application/use-cases/get-appointments.use-case.ts`, `application/use-cases/update-appointment-status.use-case.ts`.
+  - **Infrastructure:** `infrastructure/persistence/drizzle-appointment.repository.ts`, `infrastructure/concurrency/redis-distributed-lock.adapter.ts`.
+  - **Presentation:** `presentation/controllers/appointment.controller.ts`, `presentation/routes/appointment.routes.ts`, `presentation/validation/schemas.ts`.
+- **Key Deliverable:** Complete appointment aggregate root with distributed Redlock concurrency guard, preventing double-booking identical stylist slots.
 
 ---
 
-### 4. `SALON-27` — [BACKEND-04] MinIO S3 Client Integration & Presigned URL Generation Service
+### 4. `SALON-27` — [BACKEND-04] MinIO S3 Object Storage Port & Presigned URL Adapter
 - **Lead:** Ayoub Ennaoui (`@ayoubnaoui00`)
 - **Blocked By:** `SALON-24`
 - **Blocks:** `SALON-34`, `SALON-38`
-- **Target Files:** `apps/api/src/services/storage.service.ts`, `apps/api/src/routes/storage.routes.ts`, `apps/api/src/config/minio.config.ts`
-- **Key Deliverable:** MinIO JS S3 client wrapper, bucket auto-provisioning (`salonops-hair-photos`, `salonops-receipts`), 15-minute presigned PUT URLs for direct client uploads.
+- **Architectural Layers:**
+  - **Domain:** `domain/ports/object-storage.port.ts` (`getPresignedUploadUrl`, `getPublicUrl`).
+  - **Application:** `application/ports/storage.port.ts`, `application/use-cases/generate-upload-url.use-case.ts`.
+  - **Infrastructure:** `infrastructure/storage/minio-storage.adapter.ts` (provisions `salonops-hair-photos`, `salonops-receipts`).
+  - **Presentation:** `presentation/controllers/storage.controller.ts`, `presentation/routes/storage.routes.ts`.
+- **Key Deliverable:** Outbound MinIO S3 adapter generating 15-minute presigned PUT URLs for client transformation photos.
 
 ---
 
-### 5. `SALON-28` — [BACKEND-05] Moroccan Phone Validation & WhatsApp Reminder Webhook Infrastructure
+### 5. `SALON-28` — [BACKEND-05] Moroccan Phone Value Object & WhatsApp Notification Port
 - **Lead:** Salma Mirat (`@salmamirat`)
 - **Blocked By:** `SALON-24`
 - **Blocks:** `SALON-40`
-- **Target Files:** `apps/api/src/utils/phone.validator.ts`, `apps/api/src/services/notification.service.ts`, `apps/api/src/routes/webhook.routes.ts`
-- **Key Deliverable:** Moroccan phone parser (`06...`, `07...`, `+212...`), IAM/Orange/Inwi carrier detection, E.164 normalization, and bilingual reminder webhook infrastructure.
+- **Architectural Layers:**
+  - **Domain:** `domain/value-objects/phone-number.vo.ts` (validates `06...`, `07...`, `+212...`, IAM/Orange/Inwi carrier detection), `domain/ports/notification.port.ts`.
+  - **Application:** `application/use-cases/send-reminder.use-case.ts`, `application/use-cases/process-webhook.use-case.ts`.
+  - **Infrastructure:** `infrastructure/notifications/whatsapp-notification.adapter.ts`.
+  - **Presentation:** `presentation/controllers/webhook.controller.ts`, `presentation/routes/webhook.routes.ts`.
+- **Key Deliverable:** Moroccan phone normalization value object and WhatsApp notification adapter for 24h & 2h reminders.
 
 ---
 
-### 6. `SALON-29` — [BACKEND-06] Dynamic Buffer Time & Cleaning Interval Engine
+### 6. `SALON-29` — [BACKEND-06] Dynamic Buffer Time & Cleaning Interval Domain Service
 - **Lead:** Bleu-fire / Oussama (`@oussamannajag`)
 - **Blocked By:** `SALON-24`, `SALON-31`
 - **Blocks:** `SALON-26`
-- **Target Files:** `apps/api/src/services/buffer.service.ts`, `packages/database/src/schema/services.ts`
-- **Key Deliverable:** Scheduling math service incorporating Moroccan salon turnover buffers (station sanitization, blade disinfection, hair wash transition, chemical processing).
+- **Architectural Layers:**
+  - **Domain:** `domain/value-objects/time-slot.vo.ts` (`bufferEndTime`, `overlapsWith`), `domain/services/appointment-collision.service.ts`.
+  - **Application:** `application/use-cases/calculate-buffer.use-case.ts`.
+  - **Infrastructure:** Registered in `container.ts` and utilized by `BookAppointmentUseCase`.
+  - **Presentation:** Configurable buffer duration parameters in `presentation/validation/schemas.ts`.
+- **Key Deliverable:** Moroccan salon buffer engine ensuring chemical treatments (lissage, balayage) enforce station cleaning and ventilation buffer windows.
 
 ---
 
-### 7. `SALON-30` — [BACKEND-07] End-of-Day Caisse Reconciliation & Moroccan Cash/TPE Split Ledger API
+### 7. `SALON-30` — [BACKEND-07] End-of-Day Caisse Reconciliation & Moroccan Split Ledger
 - **Lead:** Mohamed Harbouli (`@harbouli.me`)
 - **Blocked By:** `SALON-24`, `SALON-25`, `SALON-26`
 - **Blocks:** `SALON-37`
-- **Target Files:** `apps/api/src/routes/caisse.routes.ts`, `apps/api/src/services/caisse.service.ts`, `packages/database/src/schema/caisse.ts`
-- **Key Deliverable:** Daily cash register opening/closing (Fond de Caisse), split payments (Cash MAD + TPE card e.g. CMI), and variance calculation (Écart de caisse).
+- **Architectural Layers:**
+  - **Domain:** `domain/models/transaction.entity.ts`, `domain/value-objects/money.vo.ts` (zero float MAD arithmetic, variance check), `domain/ports/transaction-repository.port.ts`.
+  - **Application:** `application/ports/process-checkout.port.ts`, `application/use-cases/process-checkout.use-case.ts`.
+  - **Infrastructure:** `infrastructure/persistence/drizzle-transaction.repository.ts`.
+  - **Presentation:** `presentation/controllers/checkout.controller.ts`, `presentation/routes/checkout.routes.ts`.
+- **Key Deliverable:** Daily cash register opening/closing, split checkouts (Cash MAD + TPE card CMI), and automatic stylist commission calculation.
 
 ---
 
-### 8. `SALON-31` — [BACKEND-08] Stylist Shift Schedule & Day-Off Roster Endpoints
+### 8. `SALON-31` — [BACKEND-08] Stylist Shift Schedule & Day-Off Roster
 - **Lead:** Anas Dalfag (`@dalfaganis`)
 - **Blocked By:** `SALON-24`, `SALON-33`
 - **Blocks:** `SALON-29`, `SALON-26`
-- **Target Files:** `apps/api/src/routes/schedules.routes.ts`, `packages/database/src/schema/schedules.ts`
-- **Key Deliverable:** 7-day weekly schedule CRUD, lunch break definitions (13:00 - 14:30), Friday prayer adjustments (Salat al-Jumu'ah), and staff vacation requests.
+- **Architectural Layers:**
+  - **Domain:** `domain/models/stylist.entity.ts` (`isAvailableFor(slot)`, `workingStart`, `workingEnd`, `isDayOff`), `domain/ports/stylist-repository.port.ts`.
+  - **Application:** `application/ports/get-stylists.port.ts`, `application/use-cases/get-stylists.use-case.ts`.
+  - **Infrastructure:** `infrastructure/persistence/drizzle-stylist.repository.ts`.
+  - **Presentation:** `presentation/controllers/stylist.controller.ts`, `presentation/routes/stylist.routes.ts`.
+- **Key Deliverable:** Stylist working hours and day-off roster validation directly inside domain entity models.
 
 ---
 
-### 9. `SALON-32` — [BACKEND-09] Redis Token Blacklist & Session Revocation Middleware
+### 9. `SALON-32` — [BACKEND-09] Redis Token Blacklist Port & Session Revocation Adapter
 - **Lead:** Mohammed Lelly (`@mohammedlelly2006`)
 - **Blocked By:** `SALON-25`
 - **Blocks:** *None* (Security Hardening)
-- **Target Files:** `apps/api/src/middleware/tokenBlacklist.ts`, `apps/api/src/services/auth.service.ts`, `apps/api/src/utils/redis.ts`
-- **Key Deliverable:** Instant JWT invalidation via Redis TTL entries on user logout, password reset, or manager termination.
+- **Architectural Layers:**
+  - **Domain:** `domain/ports/token-blacklist.port.ts` (`isRevoked`, `revokeToken`).
+  - **Application:** `application/use-cases/revoke-session.use-case.ts`.
+  - **Infrastructure:** `infrastructure/security/redis-token-blacklist.adapter.ts`.
+  - **Presentation:** `presentation/middleware/token-blacklist.middleware.ts`.
+- **Key Deliverable:** Instant JWT token invalidation via Redis TTL entries on staff logout or managerial termination.
 
 ---
 
-### 10. `SALON-33` — [BACKEND-10] Multi-Branch Data Isolation & Moroccan Tenant Scoping Guard
+### 10. `SALON-33` — [BACKEND-10] Multi-Branch Tenant Scoping Port & Middleware Guard
 - **Lead:** Ayoub Ennaoui (`@ayoubnaoui00`)
 - **Blocked By:** `SALON-24`, `SALON-25`
 - **Blocks:** `SALON-26`, `SALON-30`, `SALON-31`
-- **Target Files:** `apps/api/src/middleware/tenantGuard.ts`, `packages/database/src/helpers/tenantFilter.ts`
-- **Key Deliverable:** Strict multi-branch tenancy enforcement preventing data leakage across different salon branches in Casablanca, Rabat, or Marrakech.
+- **Architectural Layers:**
+  - **Domain:** `domain/ports/tenant-context.port.ts`.
+  - **Application:** Scoped repository queries in all use cases enforcing `branchId`.
+  - **Infrastructure:** Multi-tenant query wrappers in Drizzle repositories.
+  - **Presentation:** `presentation/middleware/tenant-guard.middleware.ts` extracting branch context from JWT or headers.
+- **Key Deliverable:** Data isolation preventing leaks between different salon branches in Casablanca, Rabat, and Marrakech.
 
 ---
 
-### 11. `SALON-34` — [BACKEND-11] Client Color History & Allergy Alert Notification Service
+### 11. `SALON-34` — [BACKEND-11] Client Color History & Hair Formula Vault ("Notebook Killer")
 - **Lead:** Salma Mirat (`@salmamirat`)
 - **Blocked By:** `SALON-24`, `SALON-27`
-- **Blocks:** Mobile Stylist Technical Card View
-- **Target Files:** `apps/api/src/routes/technicalSheets.routes.ts`, `packages/database/src/schema/clientTechnical.ts`
-- **Key Deliverable:** Technical hair consultation history (Fiche Technique) storing chemical formulas (Olaplex, Majirel developer volumes), allergy reactions (PPD), and before/after transformation photos.
+- **Blocks:** Mobile Stylist Technical Sheet
+- **Architectural Layers:**
+  - **Domain:** `domain/models/hair-formula.entity.ts`, `domain/models/client.entity.ts`, `domain/ports/hair-formula-repository.port.ts`, `domain/ports/client-repository.port.ts`.
+  - **Application:** `application/ports/hair-formulas.port.ts`, `application/use-cases/hair-formulas.use-cases.ts`.
+  - **Infrastructure:** `infrastructure/persistence/drizzle-hair-formula.repository.ts`, `infrastructure/persistence/drizzle-client.repository.ts`.
+  - **Presentation:** `presentation/controllers/client.controller.ts` (`GET/POST /api/v1/clients/:id/formulas`).
+- **Key Deliverable:** Digital color formula vault tracking bleach ratios, developer volumes, processing times, and transformation photos.
 
 ---
 
-### 12. `SALON-35` — [BACKEND-12] Rate Limiting & Moroccan DDoS Protection Middleware
+### 12. `SALON-35` — [BACKEND-12] Redis Rate Limiting Adapter & Abuse Protection Guard
 - **Lead:** Bleu-fire / Oussama (`@oussamannajag`)
 - **Blocked By:** `SALON-24`
-- **Blocks:** Public Booking & OTP Routes
-- **Target Files:** `apps/api/src/middleware/rateLimiter.ts`, `apps/api/src/config/redis.ts`
-- **Key Deliverable:** Redis sliding-window rate limiters with differentiated tiers (Strict 5 req/15min for Auth/OTP, 100 req/min standard).
+- **Blocks:** Public Booking Routes
+- **Architectural Layers:**
+  - **Domain:** `domain/ports/rate-limiter.port.ts`.
+  - **Infrastructure:** `infrastructure/security/redis-rate-limiter.adapter.ts`.
+  - **Presentation:** Express rate-limiting middleware configured with tiered limits (strict for auth/OTP, standard for catalogs).
+- **Key Deliverable:** Abuse and DDoS mitigation protecting public bio booking and OTP SMS endpoints.
 
 ---
 
@@ -212,26 +270,35 @@ graph TD
 - **Lead:** Mohamed Harbouli (`@harbouli.me`)
 - **Blocked By:** `SALON-24`
 - **Blocks:** Developer Test Simulator
-- **Target Files:** `packages/database/src/seed.ts`, `packages/database/src/fixtures/`
-- **Key Deliverable:** Idempotent database seeder with realistic Moroccan salon fixtures (Maarif, Agdal), Moroccan services (Brushing, Kératine, Barbe à l'ancienne), MAD prices, and hashed test users.
+- **Architectural Layers:**
+  - **Infrastructure:** `packages/database/src/seed.ts`, `packages/database/src/schema/`.
+- **Key Deliverable:** Idempotent database seeder with realistic Moroccan salon fixtures (Maarif, Agdal), services in MAD, and hashed test users.
 
 ---
 
-### 14. `SALON-37` — [BACKEND-14] API Audit Logging & Financial Modification Trail
+### 14. `SALON-37` — [BACKEND-14] API Financial Audit Logging & Modification Trail
 - **Lead:** Anas Dalfag (`@dalfaganis`)
 - **Blocked By:** `SALON-25`, `SALON-30`
 - **Blocks:** Financial Compliance Reporting
-- **Target Files:** `apps/api/src/middleware/auditLogger.ts`, `packages/database/src/schema/auditLogs.ts`
-- **Key Deliverable:** Immutable audit trail logging actor ID, timestamp, and JSON before/after snapshots on manual discounts, price overrides, and appointment deletions.
+- **Architectural Layers:**
+  - **Domain:** `domain/models/audit-log.entity.ts`, `domain/ports/audit-log-repository.port.ts`.
+  - **Application:** `application/use-cases/record-audit-event.use-case.ts`.
+  - **Infrastructure:** `infrastructure/persistence/drizzle-audit-log.repository.ts`.
+  - **Presentation:** `presentation/middleware/audit-logger.middleware.ts` capturing price overrides, manual discounts, and deletions.
+- **Key Deliverable:** Immutable audit trail logging actor ID, timestamp, and before/after JSON diffs on financial adjustments.
 
 ---
 
-### 15. `SALON-38` — [BACKEND-15] Automated Health Probe & Diagnostic Monitoring Endpoints
+### 15. `SALON-38` — [BACKEND-15] Automated Health Probe & Diagnostic Monitoring
 - **Lead:** Mohammed Lelly (`@mohammedlelly2006`)
 - **Blocked By:** `SALON-24`, `SALON-27`
 - **Blocks:** Docker Compose & VPS Production Healthchecks
-- **Target Files:** `apps/api/src/routes/health.routes.ts`, `apps/api/src/services/health.service.ts`
-- **Key Deliverable:** Standard `/livez` and `/readyz` endpoints verifying PostgreSQL connection pool, Redis ping, and MinIO storage bucket availability.
+- **Architectural Layers:**
+  - **Domain:** `domain/ports/health-check.port.ts`.
+  - **Application:** `application/use-cases/check-health.use-case.ts`.
+  - **Infrastructure:** `infrastructure/diagnostic/system-health.adapter.ts` probing PostgreSQL pool, Redis ping, MinIO bucket.
+  - **Presentation:** `presentation/controllers/health.controller.ts`, `presentation/routes/health.routes.ts` (`/health`, `/livez`, `/readyz`).
+- **Key Deliverable:** Production container diagnostic probes ensuring database, Redis, and MinIO readiness.
 
 ---
 
@@ -239,8 +306,10 @@ graph TD
 - **Lead:** Ayoub Ennaoui (`@ayoubnaoui00`)
 - **Blocked By:** `SALON-24`
 - **Blocks:** Mobile React Native UI Toast Alerts
-- **Target Files:** `apps/api/src/middleware/errorHandler.ts`, `apps/api/src/locales/errors.*.ts`
-- **Key Deliverable:** Unified error format returning bilingual error strings (French + Moroccan Darija) based on `Accept-Language` header.
+- **Architectural Layers:**
+  - **Domain:** `domain/exceptions/domain.exception.ts` (custom domain error hierarchy with message keys).
+  - **Presentation:** `presentation/middleware/error-handler.middleware.ts`, `presentation/locales/errors.fr.ts`, `presentation/locales/errors.darija.ts`.
+- **Key Deliverable:** Centralized error handler translating Domain Exceptions into standardized bilingual JSON responses based on `Accept-Language`.
 
 ---
 
@@ -248,8 +317,12 @@ graph TD
 - **Lead:** Salma Mirat (`@salmamirat`)
 - **Blocked By:** `SALON-26`, `SALON-28`
 - **Blocks:** 1-Tap Mobile Floor Counter Walk-in Button
-- **Target Files:** `apps/api/src/routes/walkin.routes.ts`, `apps/api/src/controllers/walkin.controller.ts`
-- **Key Deliverable:** High-speed endpoint for walk-in clients ("Sans Rendez-vous") creating client by phone and auto-seating them on the next available chair with incrementing daily ticket number.
+- **Architectural Layers:**
+  - **Domain:** `domain/models/appointment.entity.ts` (`startInChair()`), `domain/models/client.entity.ts`, Value Object `DailyTicketNumber`.
+  - **Application:** `application/ports/walk-in.port.ts`, `application/use-cases/create-walk-in.use-case.ts`.
+  - **Infrastructure:** `infrastructure/persistence/drizzle-appointment.repository.ts`, `infrastructure/persistence/drizzle-client.repository.ts`.
+  - **Presentation:** `presentation/controllers/walk-in.controller.ts`, `presentation/routes/walk-in.routes.ts` (`POST /api/v1/appointments/quick-walkin`).
+- **Key Deliverable:** Sub-100ms walk-in appointment endpoint auto-resolving client profile by phone and seating client on the next free stylist chair.
 
 ---
 
@@ -257,5 +330,9 @@ graph TD
 - **Lead:** Bleu-fire / Oussama (`@oussamannajag`)
 - **Blocked By:** `SALON-26`
 - **Blocks:** Client Reliability Score & Deposit Enforcement
-- **Target Files:** `apps/api/src/routes/cancellations.routes.ts`, `apps/api/src/services/reputation.service.ts`
+- **Architectural Layers:**
+  - **Domain:** `domain/models/appointment.entity.ts` (`cancel()`, `markNoShow()`), `domain/models/client.entity.ts`, Value Object `ReliabilityScore`.
+  - **Application:** `application/ports/update-appointment-status.port.ts`, `application/use-cases/update-appointment-status.use-case.ts`.
+  - **Infrastructure:** `infrastructure/persistence/drizzle-appointment.repository.ts`, `infrastructure/persistence/drizzle-client.repository.ts`.
+  - **Presentation:** `presentation/controllers/appointment.controller.ts` (`PATCH /api/v1/appointments/:id/status`, `POST /api/v1/appointments/:id/cancel`, `POST /api/v1/appointments/:id/no-show`).
 - **Key Deliverable:** Cancellation window compliance, salon no-show logging, and automated client reliability scoring to flag chronic no-shows.
