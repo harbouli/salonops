@@ -1,9 +1,8 @@
 # SalonOps Morocco 🇲🇦
 
 [![CI Status](https://img.shields.io/badge/CI-GitHub%20Actions-22c55e?logo=github-actions)](.github/workflows/ci.yml)
-[![Turborepo](https://img.shields.io/badge/Orchestration-Turborepo-ef4444?logo=turborepo)](https://turbo.build/)
 [![Package Manager](https://img.shields.io/badge/pnpm-v11.21.0-orange?logo=pnpm)](https://pnpm.io/)
-[![Expo](https://img.shields.io/badge/Expo-SDK%2052-000020?logo=expo)](https://expo.dev/)
+[![Expo](https://img.shields.io/badge/Expo-SDK%2057-000020?logo=expo)](https://expo.dev/)
 [![Express](https://img.shields.io/badge/Backend-Express.js%20(Node%2022)-black?logo=express)](https://expressjs.com/)
 [![Drizzle ORM](https://img.shields.io/badge/ORM-Drizzle%20ORM-C5F74F?logo=drizzle)](https://orm.drizzle.team/)
 [![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL%2016-336791?logo=postgresql)](https://www.postgresql.org/)
@@ -21,7 +20,7 @@ Running a salon in Morocco involves distinct operational realities that Western 
 3. **No-Show Mitigation:** 15–25% of salon slots are lost to no-shows. Automated WhatsApp & SMS notifications at 24h and 2h recover thousands of MAD monthly.
 4. **"Notebook Killer" Color Formula Vault:** Stylists maintain paper notebooks for client bleach ratios, developer volumes, and processing times. SalonOps digitizes this with Cloudflare R2 transformation photos.
 5. **Moroccan Payment Realities:** Seamless split checkout between cash, TPE bank card, and direct stylist tips.
-6. **Bilingual Floor Experience:** Instant toggle between French and Moroccan Darija with native Right-to-Left (RTL) layout support.
+26: 6. **Bilingual Floor Experience:** Instant toggle between French and Moroccan Darija with native Right-to-Left (RTL) layout support.
 
 ---
 
@@ -30,9 +29,9 @@ Running a salon in Morocco involves distinct operational realities that Western 
 ```mermaid
 graph TD
     subgraph "Clients & Floor Applications"
-        MOB["📱 <b>staff-mobile</b><br/>React Native (Expo SDK 52)<br/>Hairdresser Floor App (FR/Darija RTL)"]
-        ADMIN["💻 <b>admin-dashboard</b><br/>React.js 18.3 + Vite<br/>Owner Financials & Multi-Branch POS"]
-        CLIENT["🌐 <b>client-web</b><br/>Responsive React.js 18.3<br/>Instagram Bio Booking & Digital Wallet"]
+        MOB["📱 <b>staff-mobile</b><br/>React Native (Expo SDK 57)<br/>Hairdresser Floor App (FR/Darija RTL)"]
+        ADMIN["💻 <b>admin-dashboard</b><br/>React.js 19.3 + Vite<br/>Owner Financials & Multi-Branch POS"]
+        CLIENT["🌐 <b>client-web</b><br/>Responsive React.js 19.3<br/>Instagram Bio Booking & Digital Wallet"]
     end
 
     subgraph "Backend Services"
@@ -70,10 +69,10 @@ salonops/
 │       ├── ci.yml                 # PR & Push validation (lint, typecheck, build, docker check)
 │       └── cd.yml                 # Automated Docker container build & web asset release
 ├── apps/
-│   ├── staff-mobile/              # React Native Expo SDK 52 mobile app for hairdressers
+│   ├── staff-mobile/              # React Native Expo SDK 57 mobile app for hairdressers
 │   ├── api/                       # Express.js REST API with Drizzle ORM & Redis Redlock
-│   ├── admin-dashboard/           # React 18.3 + Vite back-office dashboard for salon owners
-│   └── client-web/                # Responsive React 18.3 booking web client (Bio link)
+│   ├── admin-dashboard/           # React 19.3 + Vite back-office dashboard for salon owners
+│   └── client-web/                # Responsive React 19.3 booking web client (Bio link)
 ├── packages/
 │   ├── database/                  # Drizzle ORM schema, migrations, connection pool & seeds
 │   ├── shared-types/              # Shared TypeScript models, enums, DTOs & interfaces
@@ -92,11 +91,11 @@ salonops/
 | Layer | Technology | Key Capabilities |
 |---|---|---|
 | **Monorepo Engine** | **pnpm v11 + Turborepo** | Fast workspace hoisting, symlinked internal packages, zero-overhead task caching |
-| **Mobile App** | **Expo SDK 52 (React Native)** | Offline SQLite support, native camera uploads, RTL Arabic/Darija engine |
+| **Mobile App** | **Expo SDK 57 (React Native)** | Offline SQLite support, native camera uploads, RTL Arabic/Darija engine |
 | **Backend API** | **Express.js (Node 22 LTS)** | Helmet, CORS, Argon2/JWT authentication, RBAC authorization guard |
 | **ORM & Database** | **Drizzle ORM + PostgreSQL 16** | Pure type-safe SQL queries, zero runtime bloat, `drizzle-kit` automated migrations |
 | **Concurrency & Cache** | **Redis 7 (ioredis + Redlock)** | Distributed lock guard eliminating appointment double-booking collisions |
-| **Web Dashboards** | **React 18.3 + Vite + Tailwind** | Sub-second HMR, luxury dark gold aesthetic (`#121214` & `#D4AF37`) |
+| **Web Dashboards** | **React 19.3 + Vite + Tailwind** | Sub-second HMR, luxury dark gold aesthetic (`#121214` & `#D4AF37`) |
 | **Storage & Media** | **Cloudflare R2** | High-resolution before/after hair formula transformation photo vault |
 
 ---
@@ -200,7 +199,7 @@ Automated with **GitHub Actions**:
 
 - [`apps/staff-mobile/README.md`](apps/staff-mobile/README.md) — React Native Expo floor application
 - [`apps/api/README.md`](apps/api/README.md) — Node.js & Express.js REST API
-- [`apps/admin-dashboard/README.md`](apps/admin-dashboard/README.md) — React 18.3 owner analytics & POS
+- [`apps/admin-dashboard/README.md`](apps/admin-dashboard/README.md) — React 19.3 owner analytics & POS
 - [`apps/client-web/README.md`](apps/client-web/README.md) — Client web booking interface
 - [`packages/database/README.md`](packages/database/README.md) — Drizzle ORM schema & migrations
 - [`packages/shared-types/README.md`](packages/shared-types/README.md) — Shared TypeScript domain models & DTOs

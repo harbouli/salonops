@@ -1,6 +1,6 @@
 # `@salonops/staff-mobile` 📱
 
-> **React Native mobile application (Expo SDK 52) designed for Moroccan salon floor hairdressers, barbers, and salon owners.**
+> **React Native mobile application (Expo SDK 57) designed for Moroccan salon floor hairdressers, barbers, and salon owners.**
 
 ---
 
@@ -31,8 +31,7 @@ apps/staff-mobile/
 │   ├── fr.json                  # French translations
 │   └── ar.json                  # Moroccan Darija (Arabic script) translations
 ├── assets/                      # Icons, splash screen & local images
-├── app.json                     # Expo SDK 52 application configuration
-├── babel.config.js              # Expo Router babel configuration
+├── app.json                     # Expo SDK 57 application configuration
 ├── package.json                 # Dependencies & Expo scripts
 └── tsconfig.json                # TypeScript configuration
 ```

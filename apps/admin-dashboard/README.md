@@ -1,6 +1,6 @@
 # `@salonops/admin-dashboard` 💻
 
-> **Single Page Application (SPA) built with React 18.3, Vite, and Tailwind CSS for Moroccan salon owners and general managers.**
+> **Single Page Application (SPA) built with React 19.3, Vite, and Tailwind CSS for Moroccan salon owners and general managers.**
 
 ---
 
