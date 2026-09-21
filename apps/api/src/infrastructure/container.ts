@@ -4,7 +4,10 @@ import { DrizzleClientRepository } from './persistence/drizzle-client.repository
 import { DrizzleServiceRepository } from './persistence/drizzle-service.repository';
 import { DrizzleHairFormulaRepository } from './persistence/drizzle-hair-formula.repository';
 import { DrizzleTransactionRepository } from './persistence/drizzle-transaction.repository';
+import { DrizzleUserRepository } from './persistence/drizzle-user.repository';
 import { RedisDistributedLockAdapter } from './concurrency/redis-distributed-lock.adapter';
+import { Argon2PasswordHasherAdapter } from './security/argon2-password-hasher.adapter';
+import { JwtTokenAdapter } from './security/jwt-token.adapter';
 
 import { BookAppointmentUseCase } from '../application/use-cases/book-appointment.use-case';
 import { GetAppointmentsUseCase } from '../application/use-cases/get-appointments.use-case';
@@ -17,16 +20,20 @@ import {
   SaveHairFormulaUseCase,
 } from '../application/use-cases/hair-formulas.use-cases';
 import { ProcessCheckoutUseCase } from '../application/use-cases/process-checkout.use-case';
+import { AuthenticateUserUseCase } from '../application/use-cases/authenticate-user.use-case';
 
 export interface AppContainer {
-  // Repositories (Driven Adapters)
+  // Repositories & Adapters (Driven Adapters)
   appointmentRepo: DrizzleAppointmentRepository;
   stylistRepo: DrizzleStylistRepository;
   clientRepo: DrizzleClientRepository;
   serviceRepo: DrizzleServiceRepository;
   hairFormulaRepo: DrizzleHairFormulaRepository;
   transactionRepo: DrizzleTransactionRepository;
+  userRepo: DrizzleUserRepository;
   lockService: RedisDistributedLockAdapter;
+  passwordHasher: Argon2PasswordHasherAdapter;
+  tokenService: JwtTokenAdapter;
 
   // Use Cases (Application Layer Inbound Ports)
   bookAppointmentUseCase: BookAppointmentUseCase;
@@ -38,6 +45,7 @@ export interface AppContainer {
   getClientFormulasUseCase: GetClientFormulasUseCase;
   saveHairFormulaUseCase: SaveHairFormulaUseCase;
   processCheckoutUseCase: ProcessCheckoutUseCase;
+  authenticateUserUseCase: AuthenticateUserUseCase;
 }
 
 export function createContainer(): AppContainer {
@@ -48,7 +56,10 @@ export function createContainer(): AppContainer {
   const serviceRepo = new DrizzleServiceRepository();
   const hairFormulaRepo = new DrizzleHairFormulaRepository();
   const transactionRepo = new DrizzleTransactionRepository();
+  const userRepo = new DrizzleUserRepository();
   const lockService = new RedisDistributedLockAdapter();
+  const passwordHasher = new Argon2PasswordHasherAdapter();
+  const tokenService = new JwtTokenAdapter();
 
   // Application Use Cases
   const bookAppointmentUseCase = new BookAppointmentUseCase(
@@ -72,6 +83,11 @@ export function createContainer(): AppContainer {
     stylistRepo,
     clientRepo
   );
+  const authenticateUserUseCase = new AuthenticateUserUseCase(
+    userRepo,
+    passwordHasher,
+    tokenService
+  );
 
   return {
     appointmentRepo,
@@ -80,7 +96,10 @@ export function createContainer(): AppContainer {
     serviceRepo,
     hairFormulaRepo,
     transactionRepo,
+    userRepo,
     lockService,
+    passwordHasher,
+    tokenService,
 
     bookAppointmentUseCase,
     getAppointmentsUseCase,
@@ -91,5 +110,6 @@ export function createContainer(): AppContainer {
     getClientFormulasUseCase,
     saveHairFormulaUseCase,
     processCheckoutUseCase,
+    authenticateUserUseCase,
   };
 }
