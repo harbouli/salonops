@@ -5,6 +5,8 @@ import {
   SlotCollisionException,
   StylistUnavailableException,
   InvalidAppointmentStateException,
+  LateCancellationException,
+  PrematureNoShowException,
   EntityNotFoundException,
   InvalidValueException,
   InvalidCredentialsException,
@@ -58,6 +60,24 @@ export function errorHandlerMiddleware(
   if (err instanceof InvalidAppointmentStateException) {
     res.status(422).json({
       error: 'Transition de statut invalide',
+      message: err.message,
+    });
+    return;
+  }
+
+  // Late Cancellation / Notice Window Error
+  if (err instanceof LateCancellationException) {
+    res.status(422).json({
+      error: 'Annulation tardive',
+      message: err.message,
+    });
+    return;
+  }
+
+  // Premature No Show Error
+  if (err instanceof PrematureNoShowException) {
+    res.status(422).json({
+      error: 'Déclaration d’absence prématurée',
       message: err.message,
     });
     return;

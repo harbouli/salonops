@@ -59,6 +59,11 @@ export interface ClientResponseDTO {
   phone: string;
   formattedPhone: string;
   loyaltyPoints: number;
+  noShowCount: number;
+  lateCancellationCount: number;
+  reliabilityScore: number;
+  reliabilityTier: string;
+  depositRecommended: boolean;
   preferences: string[];
   scalpAlert?: string | null;
   allergies?: string | null;

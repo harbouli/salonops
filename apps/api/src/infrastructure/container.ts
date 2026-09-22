@@ -71,7 +71,7 @@ export function createContainer(): AppContainer {
   );
 
   const getAppointmentsUseCase = new GetAppointmentsUseCase(appointmentRepo);
-  const updateAppointmentStatusUseCase = new UpdateAppointmentStatusUseCase(appointmentRepo);
+  const updateAppointmentStatusUseCase = new UpdateAppointmentStatusUseCase(appointmentRepo, clientRepo);
   const getStylistsUseCase = new GetStylistsUseCase(stylistRepo);
   const getServicesUseCase = new GetServicesUseCase(serviceRepo);
   const searchClientsUseCase = new SearchClientsUseCase(clientRepo);

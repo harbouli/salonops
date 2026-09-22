@@ -7,6 +7,8 @@ export function createAppointmentRouter(controller: AppointmentController): Rout
   router.get('/', controller.list);
   router.post('/', controller.create);
   router.patch('/:id/status', controller.updateStatus);
+  router.post('/:id/cancel', controller.cancel);
+  router.post('/:id/no-show', controller.markNoShow);
 
   return router;
 }

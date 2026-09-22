@@ -2,7 +2,12 @@ import { Request, Response, NextFunction } from 'express';
 import { IBookAppointmentUseCase } from '../../application/ports/book-appointment.port';
 import { IGetAppointmentsUseCase } from '../../application/ports/get-appointments.port';
 import { IUpdateAppointmentStatusUseCase } from '../../application/ports/update-appointment-status.port';
-import { createAppointmentSchema, updateAppointmentStatusSchema } from '../validation/schemas';
+import {
+  createAppointmentSchema,
+  updateAppointmentStatusSchema,
+  cancelAppointmentSchema,
+  markNoShowSchema,
+} from '../validation/schemas';
 
 export class AppointmentController {
   constructor(
@@ -43,6 +48,41 @@ export class AppointmentController {
         appointmentId: id,
         status: validated.status,
         reason: validated.reason,
+        cancellationTime: validated.cancellationTime ? new Date(validated.cancellationTime) : undefined,
+        minNoticeHours: validated.minNoticeHours,
+        recordedAt: validated.recordedAt ? new Date(validated.recordedAt) : undefined,
+        gracePeriodMinutes: validated.gracePeriodMinutes,
+      });
+      res.json(updated);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  public cancel = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const id = String(req.params.id);
+      const validated = cancelAppointmentSchema.parse(req.body);
+      const updated = await this.updateAppointmentStatusUseCase.cancel({
+        appointmentId: id,
+        reason: validated.reason,
+        cancellationTime: validated.cancellationTime ? new Date(validated.cancellationTime) : undefined,
+        minNoticeHours: validated.minNoticeHours,
+      });
+      res.json(updated);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  public markNoShow = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const id = String(req.params.id);
+      const validated = markNoShowSchema.parse(req.body);
+      const updated = await this.updateAppointmentStatusUseCase.markNoShow({
+        appointmentId: id,
+        recordedAt: validated.recordedAt ? new Date(validated.recordedAt) : undefined,
+        gracePeriodMinutes: validated.gracePeriodMinutes,
       });
       res.json(updated);
     } catch (err) {

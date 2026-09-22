@@ -1,16 +1,31 @@
-import { AppointmentResponseDTO } from '../dtos';
+import {
+  IUpdateAppointmentStatusUseCase,
+  UpdateAppointmentStatusDTO,
+  CancelAppointmentDTO,
+  MarkNoShowDTO,
+  AppointmentStatusUpdateResultDTO,
+} from '../ports/update-appointment-status.port';
 import { IAppointmentRepository } from '../../domain/ports/appointment-repository.port';
-import { IUpdateAppointmentStatusUseCase, UpdateAppointmentStatusDTO } from '../ports/update-appointment-status.port';
-import { EntityNotFoundException, InvalidAppointmentStateException } from '../../domain/exceptions/domain.exception';
+import { IClientRepository } from '../../domain/ports/client-repository.port';
+import {
+  EntityNotFoundException,
+  InvalidAppointmentStateException,
+} from '../../domain/exceptions/domain.exception';
 
 export class UpdateAppointmentStatusUseCase implements IUpdateAppointmentStatusUseCase {
-  constructor(private readonly appointmentRepo: IAppointmentRepository) {}
+  constructor(
+    private readonly appointmentRepo: IAppointmentRepository,
+    private readonly clientRepo?: IClientRepository
+  ) {}
 
-  public async execute(dto: UpdateAppointmentStatusDTO): Promise<AppointmentResponseDTO> {
+  public async execute(dto: UpdateAppointmentStatusDTO): Promise<AppointmentStatusUpdateResultDTO> {
     const appointment = await this.appointmentRepo.findById(dto.appointmentId);
     if (!appointment) {
       throw new EntityNotFoundException('Rendez-vous', dto.appointmentId);
     }
+
+    const client = this.clientRepo ? await this.clientRepo.findById(appointment.clientId) : null;
+    let isLateCancellation: boolean | undefined;
 
     switch (dto.status) {
       case 'CONFIRMED':
@@ -21,12 +36,33 @@ export class UpdateAppointmentStatusUseCase implements IUpdateAppointmentStatusU
         break;
       case 'COMPLETED':
         appointment.complete();
+        if (client) {
+          client.recordCompletedVisit();
+          await this.clientRepo!.save(client);
+        }
         break;
-      case 'CANCELLED':
-        appointment.cancel(dto.reason);
+      case 'CANCELLED': {
+        const cancelResult = appointment.cancel({
+          reason: dto.reason,
+          cancellationTime: dto.cancellationTime,
+          minNoticeHours: dto.minNoticeHours,
+        });
+        isLateCancellation = cancelResult.isLate;
+        if (client && isLateCancellation) {
+          client.recordLateCancellation();
+          await this.clientRepo!.save(client);
+        }
         break;
+      }
       case 'NO_SHOW':
-        appointment.markNoShow();
+        appointment.markNoShow({
+          recordedAt: dto.recordedAt,
+          gracePeriodMinutes: dto.gracePeriodMinutes,
+        });
+        if (client) {
+          client.recordNoShow();
+          await this.clientRepo!.save(client);
+        }
         break;
       default:
         throw new InvalidAppointmentStateException(`Statut inconnu: ${dto.status}`);
@@ -48,6 +84,28 @@ export class UpdateAppointmentStatusUseCase implements IUpdateAppointmentStatusU
       notes: saved.notes,
       createdAt: saved.createdAt.toISOString(),
       updatedAt: saved.updatedAt.toISOString(),
+      clientReliabilityScore: client?.reliabilityScore.value,
+      clientReliabilityTier: client?.reliabilityScore.tier,
+      isLateCancellation,
     };
+  }
+
+  public async cancel(dto: CancelAppointmentDTO): Promise<AppointmentStatusUpdateResultDTO> {
+    return this.execute({
+      appointmentId: dto.appointmentId,
+      status: 'CANCELLED',
+      reason: dto.reason,
+      cancellationTime: dto.cancellationTime,
+      minNoticeHours: dto.minNoticeHours,
+    });
+  }
+
+  public async markNoShow(dto: MarkNoShowDTO): Promise<AppointmentStatusUpdateResultDTO> {
+    return this.execute({
+      appointmentId: dto.appointmentId,
+      status: 'NO_SHOW',
+      recordedAt: dto.recordedAt,
+      gracePeriodMinutes: dto.gracePeriodMinutes,
+    });
   }
 }

@@ -24,6 +24,18 @@ export class InvalidAppointmentStateException extends DomainException {
   }
 }
 
+export class LateCancellationException extends DomainException {
+  constructor(message: string = 'Le délai minimum de prévenance pour annulation n’a pas été respecté.') {
+    super(message);
+  }
+}
+
+export class PrematureNoShowException extends DomainException {
+  constructor(message: string = 'Impossible de déclarer une absence avant l’expiration de la période de grâce.') {
+    super(message);
+  }
+}
+
 export class EntityNotFoundException extends DomainException {
   constructor(entityName: string, id: string) {
     super(`${entityName} avec l'identifiant "${id}" est introuvable.`);
