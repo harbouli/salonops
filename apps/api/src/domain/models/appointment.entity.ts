@@ -95,21 +95,52 @@ export class Appointment {
     this._updatedAt = new Date();
   }
 
-  public cancel(reason?: string): void {
+  public cancel(options?: { reason?: string; cancellationTime?: Date; minNoticeHours?: number }): { isLate: boolean } {
     if (this._status === 'COMPLETED') {
       throw new InvalidAppointmentStateException('Impossible d’annuler un rendez-vous déjà complété.');
     }
-    this._status = 'CANCELLED';
-    if (reason) {
-      this._notes = this._notes ? `${this._notes} | Annulation: ${reason}` : `Annulation: ${reason}`;
+    if (this._status === 'CANCELLED') {
+      throw new InvalidAppointmentStateException('Ce rendez-vous est déjà annulé.');
     }
+    if (this._status === 'NO_SHOW') {
+      throw new InvalidAppointmentStateException('Impossible d’annuler un rendez-vous déjà marqué absent.');
+    }
+
+    const cancelAt = options?.cancellationTime ?? new Date();
+    const minNoticeHours = options?.minNoticeHours ?? 2; // Moroccan salon 2-hour minimum notice
+    const noticeLimitMs = minNoticeHours * 60 * 60 * 1000;
+    const isLate = this._timeSlot.startTime.getTime() - cancelAt.getTime() < noticeLimitMs;
+
+    this._status = 'CANCELLED';
+    const tag = isLate ? 'Annulation tardive' : 'Annulation';
+    const reasonText = options?.reason ? `${tag}: ${options.reason}` : tag;
+    this._notes = this._notes ? `${this._notes} | ${reasonText}` : reasonText;
     this._updatedAt = new Date();
+
+    return { isLate };
   }
 
-  public markNoShow(): void {
+  public markNoShow(options?: { recordedAt?: Date; gracePeriodMinutes?: number }): void {
     if (this._status === 'COMPLETED') {
       throw new InvalidAppointmentStateException('Impossible de marquer absent un rendez-vous déjà complété.');
     }
+    if (this._status === 'CANCELLED') {
+      throw new InvalidAppointmentStateException('Impossible de marquer absent un rendez-vous déjà annulé.');
+    }
+    if (this._status === 'NO_SHOW') {
+      throw new InvalidAppointmentStateException('Ce rendez-vous est déjà marqué absent.');
+    }
+
+    const recordedAt = options?.recordedAt ?? new Date();
+    const gracePeriodMinutes = options?.gracePeriodMinutes ?? 15; // Standard 15 min grace period
+    const graceExpiryTime = new Date(this._timeSlot.startTime.getTime() + gracePeriodMinutes * 60 * 1000);
+
+    if (recordedAt < graceExpiryTime) {
+      throw new InvalidAppointmentStateException(
+        `Impossible de marquer absent avant la fin de la période de grâce (${gracePeriodMinutes} min après le début prévu).`
+      );
+    }
+
     this._status = 'NO_SHOW';
     this._updatedAt = new Date();
   }

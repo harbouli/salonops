@@ -12,6 +12,21 @@ export const createAppointmentSchema = z.object({
 export const updateAppointmentStatusSchema = z.object({
   status: z.enum(['BOOKED', 'CONFIRMED', 'IN_CHAIR', 'COMPLETED', 'CANCELLED', 'NO_SHOW']),
   reason: z.string().optional(),
+  cancellationTime: z.string().datetime().optional(),
+  minNoticeHours: z.number().nonnegative().optional(),
+  recordedAt: z.string().datetime().optional(),
+  gracePeriodMinutes: z.number().nonnegative().optional(),
+});
+
+export const cancelAppointmentSchema = z.object({
+  reason: z.string().optional(),
+  cancellationTime: z.string().datetime().optional(),
+  minNoticeHours: z.number().nonnegative().optional(),
+});
+
+export const markNoShowSchema = z.object({
+  recordedAt: z.string().datetime().optional(),
+  gracePeriodMinutes: z.number().nonnegative().optional(),
 });
 
 export const createHairFormulaSchema = z.object({

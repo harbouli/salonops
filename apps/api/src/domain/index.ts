@@ -2,6 +2,7 @@ export * from './exceptions/domain.exception';
 export * from './value-objects/money.vo';
 export * from './value-objects/time-slot.vo';
 export * from './value-objects/phone-number.vo';
+export * from './value-objects/reliability-score.vo';
 export * from './models/appointment.entity';
 export * from './models/stylist.entity';
 export * from './models/client.entity';
