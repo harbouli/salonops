@@ -7,21 +7,29 @@ import {
 } from '../ports/update-appointment-status.port';
 import { IAppointmentRepository } from '../../domain/ports/appointment-repository.port';
 import { IClientRepository } from '../../domain/ports/client-repository.port';
+import { ITenantContextPort } from '../../domain/ports/tenant-context.port';
 import {
   EntityNotFoundException,
   InvalidAppointmentStateException,
+  CrossTenantAccessException,
 } from '../../domain/exceptions/domain.exception';
 
 export class UpdateAppointmentStatusUseCase implements IUpdateAppointmentStatusUseCase {
   constructor(
     private readonly appointmentRepo: IAppointmentRepository,
-    private readonly clientRepo?: IClientRepository
+    private readonly clientRepo?: IClientRepository,
+    private readonly tenantPort?: ITenantContextPort
   ) {}
 
   public async execute(dto: UpdateAppointmentStatusDTO): Promise<AppointmentStatusUpdateResultDTO> {
     const appointment = await this.appointmentRepo.findById(dto.appointmentId);
     if (!appointment) {
       throw new EntityNotFoundException('Rendez-vous', dto.appointmentId);
+    }
+
+    const tenant = this.tenantPort?.getTenant();
+    if (tenant && !tenant.isSuperAdmin && appointment.branchId !== tenant.branchId) {
+      throw new CrossTenantAccessException(`Ce rendez-vous appartient à une autre succursale.`);
     }
 
     const client = this.clientRepo ? await this.clientRepo.findById(appointment.clientId) : null;

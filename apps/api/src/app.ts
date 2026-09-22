@@ -11,6 +11,7 @@ import { ServiceController } from './presentation/controllers/service.controller
 import { ClientController } from './presentation/controllers/client.controller';
 import { CheckoutController } from './presentation/controllers/checkout.controller';
 import { AuthController } from './presentation/controllers/auth.controller';
+import { StorageController } from './presentation/controllers/storage.controller';
 
 import { createAppointmentRouter } from './presentation/routes/appointment.routes';
 import { createStylistRouter } from './presentation/routes/stylist.routes';
@@ -18,9 +19,11 @@ import { createServiceRouter } from './presentation/routes/service.routes';
 import { createClientRouter } from './presentation/routes/client.routes';
 import { createCheckoutRouter } from './presentation/routes/checkout.routes';
 import { createAuthRouter } from './presentation/routes/auth.routes';
+import { createStorageRouter } from './presentation/routes/storage.routes';
 import { createHealthRouter } from './presentation/routes/health.routes';
 import { errorHandlerMiddleware } from './presentation/middleware/error-handler.middleware';
-import { createAuthMiddleware } from './presentation/middleware/auth.middleware';
+import { createAuthMiddleware, createOptionalAuthMiddleware } from './presentation/middleware/auth.middleware';
+import { createTenantGuardMiddleware } from './presentation/middleware/tenant-guard.middleware';
 
 export function createApp(container: AppContainer = createContainer()): Express {
   const app = express();
@@ -41,6 +44,10 @@ export function createApp(container: AppContainer = createContainer()): Express 
 
   // Auth Middleware with container token service
   const authGuard = createAuthMiddleware(container.tokenService) as unknown as RequestHandler;
+  const optionalAuth = createOptionalAuthMiddleware(container.tokenService) as unknown as RequestHandler;
+
+  // Tenant Isolation Guard with AsyncLocalStorage context propagation
+  const tenantGuard = createTenantGuardMiddleware(container.tenantContextPort) as unknown as RequestHandler;
 
   // Controllers (Driving Adapters)
   const authController = new AuthController(container.authenticateUserUseCase);
@@ -57,15 +64,18 @@ export function createApp(container: AppContainer = createContainer()): Express 
     container.saveHairFormulaUseCase
   );
   const checkoutController = new CheckoutController(container.processCheckoutUseCase);
+  const storageController = new StorageController(container.generateUploadUrlUseCase);
 
   // Mount API Routers (Inbound Adapters)
   app.use('/health', createHealthRouter());
   app.use('/api/v1/auth', createAuthRouter(authController, authGuard));
-  app.use('/api/v1/stylists', createStylistRouter(stylistController));
-  app.use('/api/v1/services', createServiceRouter(serviceController));
-  app.use('/api/v1/appointments', createAppointmentRouter(appointmentController));
-  app.use('/api/v1/clients', createClientRouter(clientController));
-  app.use('/api/v1/checkout', createCheckoutRouter(checkoutController));
+  app.use('/api/v1/stylists', optionalAuth, tenantGuard, createStylistRouter(stylistController));
+  app.use('/api/v1/services', optionalAuth, tenantGuard, createServiceRouter(serviceController));
+  app.use('/api/v1/appointments', optionalAuth, tenantGuard, createAppointmentRouter(appointmentController));
+  app.use('/api/v1/clients', optionalAuth, tenantGuard, createClientRouter(clientController));
+  app.use('/api/v1/checkout', optionalAuth, tenantGuard, createCheckoutRouter(checkoutController));
+  app.use('/api/v1/storage', optionalAuth, tenantGuard, createStorageRouter(storageController, authGuard));
+
 
   // 404 Handler
   app.use((_req: Request, res: Response) => {

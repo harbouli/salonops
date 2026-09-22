@@ -95,7 +95,7 @@ export class Appointment {
     this._updatedAt = new Date();
   }
 
-  public cancel(options?: { reason?: string; cancellationTime?: Date; minNoticeHours?: number }): { isLate: boolean } {
+  public cancel(options?: string | { reason?: string; cancellationTime?: Date; minNoticeHours?: number }): { isLate: boolean } {
     if (this._status === 'COMPLETED') {
       throw new InvalidAppointmentStateException('Impossible d’annuler un rendez-vous déjà complété.');
     }
@@ -106,14 +106,15 @@ export class Appointment {
       throw new InvalidAppointmentStateException('Impossible d’annuler un rendez-vous déjà marqué absent.');
     }
 
-    const cancelAt = options?.cancellationTime ?? new Date();
-    const minNoticeHours = options?.minNoticeHours ?? 2; // Moroccan salon 2-hour minimum notice
+    const opts = typeof options === 'string' ? { reason: options } : options;
+    const cancelAt = opts?.cancellationTime ?? new Date();
+    const minNoticeHours = opts?.minNoticeHours ?? 2; // Moroccan salon 2-hour minimum notice
     const noticeLimitMs = minNoticeHours * 60 * 60 * 1000;
     const isLate = this._timeSlot.startTime.getTime() - cancelAt.getTime() < noticeLimitMs;
 
     this._status = 'CANCELLED';
     const tag = isLate ? 'Annulation tardive' : 'Annulation';
-    const reasonText = options?.reason ? `${tag}: ${options.reason}` : tag;
+    const reasonText = opts?.reason ? `${tag}: ${opts.reason}` : tag;
     this._notes = this._notes ? `${this._notes} | ${reasonText}` : reasonText;
     this._updatedAt = new Date();
 

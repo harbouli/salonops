@@ -1,8 +1,12 @@
 import { db, users, eq, and } from '@salonops/database';
 import { IStylistRepository } from '../../domain/ports/stylist-repository.port';
 import { Stylist } from '../../domain/models/stylist.entity';
+import { ITenantContextPort } from '../../domain/ports/tenant-context.port';
+import { withTenantBranchCondition } from './tenant-scoped-query.decorator';
 
 export class DrizzleStylistRepository implements IStylistRepository {
+  constructor(private readonly tenantPort?: ITenantContextPort) {}
+
   private toDomain(row: typeof users.$inferSelect): Stylist {
     return new Stylist({
       id: row.id,
@@ -31,8 +35,14 @@ export class DrizzleStylistRepository implements IStylistRepository {
 
   public async findAllActive(branchId?: string): Promise<Stylist[]> {
     const conditions = [eq(users.isActive, true)];
-    if (branchId) {
-      conditions.push(eq(users.branchId, branchId));
+
+    const branchCondition = withTenantBranchCondition(
+      users.branchId,
+      branchId,
+      this.tenantPort?.getTenant()
+    );
+    if (branchCondition) {
+      conditions.push(branchCondition);
     }
 
     const rows = await db
@@ -43,3 +53,4 @@ export class DrizzleStylistRepository implements IStylistRepository {
     return rows.map((r) => this.toDomain(r));
   }
 }
+

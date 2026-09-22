@@ -11,7 +11,9 @@ import { AppointmentCollisionService } from '../../domain/services/appointment-c
 import {
   EntityNotFoundException,
   StylistUnavailableException,
+  CrossTenantAccessException,
 } from '../../domain/exceptions/domain.exception';
+import { ITenantContextPort } from '../../domain/ports/tenant-context.port';
 
 export class BookAppointmentUseCase implements IBookAppointmentUseCase {
   constructor(
@@ -19,10 +21,20 @@ export class BookAppointmentUseCase implements IBookAppointmentUseCase {
     private readonly stylistRepo: IStylistRepository,
     private readonly serviceRepo: IServiceRepository,
     private readonly clientRepo: IClientRepository,
-    private readonly lockService: IDistributedLockPort
+    private readonly lockService: IDistributedLockPort,
+    private readonly tenantPort?: ITenantContextPort
   ) {}
 
   public async execute(dto: CreateAppointmentDTO): Promise<AppointmentResponseDTO> {
+    const tenant = this.tenantPort?.getTenant();
+    if (tenant && !tenant.isSuperAdmin) {
+      if (dto.branchId && dto.branchId !== tenant.branchId) {
+        throw new CrossTenantAccessException(
+          `Accès inter-succursales interdit : impossible de réserver pour la succursale "${dto.branchId}".`
+        );
+      }
+    }
+
     // Acquire distributed lock to prevent race conditions on the same stylist schedule
     const lockResource = `lock:stylist:${dto.stylistId}:slot`;
     const lock = await this.lockService.acquireLock(lockResource, 5000);
@@ -33,6 +45,10 @@ export class BookAppointmentUseCase implements IBookAppointmentUseCase {
       if (!stylist) {
         throw new EntityNotFoundException('Coiffeuse', dto.stylistId);
       }
+      if (tenant && !tenant.isSuperAdmin && stylist.branchId !== tenant.branchId) {
+        throw new CrossTenantAccessException(`La coiffeuse n'appartient pas à votre succursale autorisée.`);
+      }
+
       if (!stylist.canTakeAppointments()) {
         throw new StylistUnavailableException(
           `La coiffeuse ${stylist.fullName} n'est pas disponible (repos ou compte inactif).`
@@ -44,11 +60,17 @@ export class BookAppointmentUseCase implements IBookAppointmentUseCase {
       if (!service) {
         throw new EntityNotFoundException('Prestation', dto.serviceId);
       }
+      if (service.branchId !== dto.branchId) {
+        throw new CrossTenantAccessException(`La prestation n'appartient pas à la succursale sélectionnée.`);
+      }
 
       // 3. Verify client
       const client = await this.clientRepo.findById(dto.clientId);
       if (!client) {
         throw new EntityNotFoundException('Cliente', dto.clientId);
+      }
+      if (client.branchId !== dto.branchId) {
+        throw new CrossTenantAccessException(`La cliente n'appartient pas à la succursale sélectionnée.`);
       }
 
       // 4. Build TimeSlot with service duration and Moroccan salon buffer

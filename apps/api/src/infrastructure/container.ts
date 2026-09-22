@@ -8,6 +8,10 @@ import { DrizzleUserRepository } from './persistence/drizzle-user.repository';
 import { RedisDistributedLockAdapter } from './concurrency/redis-distributed-lock.adapter';
 import { Argon2PasswordHasherAdapter } from './security/argon2-password-hasher.adapter';
 import { JwtTokenAdapter } from './security/jwt-token.adapter';
+import { MinioStorageAdapter } from './storage/minio-storage.adapter';
+import { IObjectStoragePort } from '../domain/ports/object-storage.port';
+import { ITenantContextPort } from '../domain/ports/tenant-context.port';
+import { AsyncLocalStorageTenantContextAdapter } from './tenant/async-local-storage-tenant-context.adapter';
 
 import { BookAppointmentUseCase } from '../application/use-cases/book-appointment.use-case';
 import { GetAppointmentsUseCase } from '../application/use-cases/get-appointments.use-case';
@@ -21,6 +25,7 @@ import {
 } from '../application/use-cases/hair-formulas.use-cases';
 import { ProcessCheckoutUseCase } from '../application/use-cases/process-checkout.use-case';
 import { AuthenticateUserUseCase } from '../application/use-cases/authenticate-user.use-case';
+import { GenerateUploadUrlUseCase } from '../application/use-cases/generate-upload-url.use-case';
 
 export interface AppContainer {
   // Repositories & Adapters (Driven Adapters)
@@ -34,6 +39,8 @@ export interface AppContainer {
   lockService: RedisDistributedLockAdapter;
   passwordHasher: Argon2PasswordHasherAdapter;
   tokenService: JwtTokenAdapter;
+  storageAdapter: IObjectStoragePort;
+  tenantContextPort: ITenantContextPort;
 
   // Use Cases (Application Layer Inbound Ports)
   bookAppointmentUseCase: BookAppointmentUseCase;
@@ -46,20 +53,26 @@ export interface AppContainer {
   saveHairFormulaUseCase: SaveHairFormulaUseCase;
   processCheckoutUseCase: ProcessCheckoutUseCase;
   authenticateUserUseCase: AuthenticateUserUseCase;
+  generateUploadUrlUseCase: GenerateUploadUrlUseCase;
 }
 
+
 export function createContainer(): AppContainer {
+  // Tenant Context Ambient Port (AsyncLocalStorage)
+  const tenantContextPort = new AsyncLocalStorageTenantContextAdapter();
+
   // Outbound Driven Adapters
-  const appointmentRepo = new DrizzleAppointmentRepository();
-  const stylistRepo = new DrizzleStylistRepository();
-  const clientRepo = new DrizzleClientRepository();
-  const serviceRepo = new DrizzleServiceRepository();
+  const appointmentRepo = new DrizzleAppointmentRepository(tenantContextPort);
+  const stylistRepo = new DrizzleStylistRepository(tenantContextPort);
+  const clientRepo = new DrizzleClientRepository(tenantContextPort);
+  const serviceRepo = new DrizzleServiceRepository(tenantContextPort);
   const hairFormulaRepo = new DrizzleHairFormulaRepository();
   const transactionRepo = new DrizzleTransactionRepository();
   const userRepo = new DrizzleUserRepository();
   const lockService = new RedisDistributedLockAdapter();
   const passwordHasher = new Argon2PasswordHasherAdapter();
   const tokenService = new JwtTokenAdapter();
+  const storageAdapter = new MinioStorageAdapter();
 
   // Application Use Cases
   const bookAppointmentUseCase = new BookAppointmentUseCase(
@@ -67,14 +80,19 @@ export function createContainer(): AppContainer {
     stylistRepo,
     serviceRepo,
     clientRepo,
-    lockService
+    lockService,
+    tenantContextPort
   );
 
-  const getAppointmentsUseCase = new GetAppointmentsUseCase(appointmentRepo);
-  const updateAppointmentStatusUseCase = new UpdateAppointmentStatusUseCase(appointmentRepo, clientRepo);
-  const getStylistsUseCase = new GetStylistsUseCase(stylistRepo);
-  const getServicesUseCase = new GetServicesUseCase(serviceRepo);
-  const searchClientsUseCase = new SearchClientsUseCase(clientRepo);
+  const getAppointmentsUseCase = new GetAppointmentsUseCase(appointmentRepo, tenantContextPort);
+  const updateAppointmentStatusUseCase = new UpdateAppointmentStatusUseCase(
+    appointmentRepo,
+    clientRepo,
+    tenantContextPort
+  );
+  const getStylistsUseCase = new GetStylistsUseCase(stylistRepo, tenantContextPort);
+  const getServicesUseCase = new GetServicesUseCase(serviceRepo, tenantContextPort);
+  const searchClientsUseCase = new SearchClientsUseCase(clientRepo, tenantContextPort);
   const getClientFormulasUseCase = new GetClientFormulasUseCase(hairFormulaRepo, clientRepo);
   const saveHairFormulaUseCase = new SaveHairFormulaUseCase(hairFormulaRepo, clientRepo);
   const processCheckoutUseCase = new ProcessCheckoutUseCase(
@@ -88,6 +106,7 @@ export function createContainer(): AppContainer {
     passwordHasher,
     tokenService
   );
+  const generateUploadUrlUseCase = new GenerateUploadUrlUseCase(storageAdapter);
 
   return {
     appointmentRepo,
@@ -100,6 +119,8 @@ export function createContainer(): AppContainer {
     lockService,
     passwordHasher,
     tokenService,
+    storageAdapter,
+    tenantContextPort,
 
     bookAppointmentUseCase,
     getAppointmentsUseCase,
@@ -111,5 +132,8 @@ export function createContainer(): AppContainer {
     saveHairFormulaUseCase,
     processCheckoutUseCase,
     authenticateUserUseCase,
+    generateUploadUrlUseCase,
   };
 }
+
+

@@ -2,8 +2,12 @@ import { db, services, eq } from '@salonops/database';
 import { IServiceRepository } from '../../domain/ports/service-repository.port';
 import { Service } from '../../domain/models/service.entity';
 import { Money } from '../../domain/value-objects/money.vo';
+import { ITenantContextPort } from '../../domain/ports/tenant-context.port';
+import { withTenantBranchCondition } from './tenant-scoped-query.decorator';
 
 export class DrizzleServiceRepository implements IServiceRepository {
+  constructor(private readonly tenantPort?: ITenantContextPort) {}
+
   private toDomain(row: typeof services.$inferSelect): Service {
     return new Service({
       id: row.id,
@@ -31,10 +35,17 @@ export class DrizzleServiceRepository implements IServiceRepository {
   }
 
   public async findAll(branchId?: string): Promise<Service[]> {
-    const rows = branchId
-      ? await db.select().from(services).where(eq(services.branchId, branchId))
+    const branchCondition = withTenantBranchCondition(
+      services.branchId,
+      branchId,
+      this.tenantPort?.getTenant()
+    );
+
+    const rows = branchCondition
+      ? await db.select().from(services).where(branchCondition)
       : await db.select().from(services);
 
     return rows.map((r) => this.toDomain(r));
   }
 }
+

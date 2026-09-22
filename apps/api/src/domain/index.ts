@@ -21,4 +21,6 @@ export * from './ports/distributed-lock.port';
 export * from './ports/password-hasher.port';
 export * from './ports/token-service.port';
 export * from './ports/user-repository.port';
+export * from './ports/object-storage.port';
+export * from './ports/tenant-context.port';
 
