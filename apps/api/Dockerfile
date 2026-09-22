@@ -1,4 +1,4 @@
-FROM node:22-alpine AS base
+FROM node:24-alpine AS base
 RUN corepack enable && corepack prepare pnpm@11.21.0 --activate
 WORKDIR /app
 
@@ -13,7 +13,7 @@ RUN pnpm --filter @salonops/shared-types build
 RUN pnpm --filter @salonops/database build
 RUN pnpm --filter @salonops/api build
 
-FROM node:22-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 RUN corepack enable && corepack prepare pnpm@11.21.0 --activate

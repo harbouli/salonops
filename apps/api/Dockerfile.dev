@@ -1,0 +1,16 @@
+FROM node:24-alpine
+RUN corepack enable && corepack prepare pnpm@11.21.0 --activate
+WORKDIR /app
+
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json turbo.json ./
+COPY packages/ ./packages/
+COPY apps/api/package.json ./apps/api/
+
+RUN pnpm approve-builds --all && pnpm install --frozen-lockfile
+RUN pnpm --filter @salonops/shared-types build
+RUN pnpm --filter @salonops/database build
+
+WORKDIR /app/apps/api
+
+EXPOSE 4000
+CMD ["pnpm", "dev"]
