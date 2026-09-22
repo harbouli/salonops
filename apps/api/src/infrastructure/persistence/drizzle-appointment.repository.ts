@@ -14,8 +14,11 @@ import { IAppointmentRepository, FindAppointmentsFilter } from '../../domain/por
 import { Appointment, AppointmentStatus } from '../../domain/models/appointment.entity';
 import { TimeSlot } from '../../domain/value-objects/time-slot.vo';
 import { Money } from '../../domain/value-objects/money.vo';
+import { ITenantContextPort } from '../../domain/ports/tenant-context.port';
+import { withTenantBranchCondition } from './tenant-scoped-query.decorator';
 
 export class DrizzleAppointmentRepository implements IAppointmentRepository {
+  constructor(private readonly tenantPort?: ITenantContextPort) {}
   private toDomain(row: typeof appointments.$inferSelect): Appointment {
     return new Appointment({
       id: row.id,
@@ -96,8 +99,13 @@ export class DrizzleAppointmentRepository implements IAppointmentRepository {
       conditions.push(eq(appointments.stylistId, filter.stylistId));
     }
 
-    if (filter?.branchId) {
-      conditions.push(eq(appointments.branchId, filter.branchId));
+    const branchCondition = withTenantBranchCondition(
+      appointments.branchId,
+      filter?.branchId,
+      this.tenantPort?.getTenant()
+    );
+    if (branchCondition) {
+      conditions.push(branchCondition);
     }
 
     if (filter?.date) {

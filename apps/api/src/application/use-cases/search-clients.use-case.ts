@@ -1,12 +1,29 @@
 import { ClientResponseDTO } from '../dtos';
 import { IClientRepository } from '../../domain/ports/client-repository.port';
 import { ISearchClientsUseCase } from '../ports/search-clients.port';
+import { ITenantContextPort } from '../../domain/ports/tenant-context.port';
+import { CrossTenantAccessException } from '../../domain/exceptions/domain.exception';
 
 export class SearchClientsUseCase implements ISearchClientsUseCase {
-  constructor(private readonly clientRepo: IClientRepository) {}
+  constructor(
+    private readonly clientRepo: IClientRepository,
+    private readonly tenantPort?: ITenantContextPort
+  ) {}
 
   public async execute(query: string, branchId?: string): Promise<ClientResponseDTO[]> {
-    const clients = await this.clientRepo.search(query, branchId);
+    const tenant = this.tenantPort?.getTenant();
+    let effectiveBranchId = branchId;
+
+    if (tenant && !tenant.isSuperAdmin) {
+      if (branchId && branchId !== tenant.branchId) {
+        throw new CrossTenantAccessException(
+          `Accès inter-succursales interdit : impossible de rechercher des clientes de la succursale "${branchId}".`
+        );
+      }
+      effectiveBranchId = tenant.branchId;
+    }
+
+    const clients = await this.clientRepo.search(query, effectiveBranchId);
 
     return clients.map((c) => ({
       id: c.id,

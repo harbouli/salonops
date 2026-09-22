@@ -61,3 +61,11 @@ export const loginSchema = z.object({
   password: z.string().min(1, 'Le mot de passe est requis'),
 });
 
+export const generatePresignedUrlSchema = z.object({
+  fileName: z.string().min(1, 'Le nom du fichier est requis'),
+  mimeType: z.string().min(1, 'Le type MIME est requis'),
+  fileSize: z.number().int().positive('La taille du fichier doit être un entier positif').optional(),
+  bucket: z.enum(['salonops-hair-photos', 'salonops-receipts']).optional(),
+  folder: z.string().optional(),
+});
+

@@ -130,3 +130,21 @@ export interface CheckoutResponseDTO {
   stylistCommissionMad: string;
   createdAt: string;
 }
+
+export type StorageBucket = 'salonops-hair-photos' | 'salonops-receipts';
+
+export interface GenerateUploadUrlDTO {
+  fileName: string;
+  mimeType: string;
+  fileSize?: number;
+  bucket?: StorageBucket;
+  folder?: string;
+}
+
+export interface GenerateUploadUrlResponseDTO {
+  uploadUrl: string;
+  publicUrl: string;
+  bucket: string;
+  objectKey: string;
+  expiresInSeconds: number;
+}

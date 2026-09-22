@@ -51,6 +51,11 @@ export class User {
   }
 
   public isOwnerOrManager(): boolean {
-    return this.role === UserRole.OWNER || this.role === UserRole.MANAGER;
+    return this.role === UserRole.OWNER || this.role === UserRole.MANAGER || this.role === UserRole.SUPER_ADMIN;
+  }
+
+  public isSuperAdmin(): boolean {
+    return this.role === UserRole.SUPER_ADMIN;
   }
 }
+

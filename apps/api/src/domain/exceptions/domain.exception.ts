@@ -60,3 +60,34 @@ export class UnauthorizedAccessException extends DomainException {
   }
 }
 
+export class UnsupportedFileTypeException extends DomainException {
+  constructor(message: string = 'Format de fichier non supporté. Seules les images (JPEG, PNG, WebP, HEIC) ou PDF sont acceptés.') {
+    super(message);
+  }
+}
+
+export class FileTooLargeException extends DomainException {
+  constructor(maxSizeMb: number) {
+    super(`Fichier trop volumineux. La taille maximale autorisée est de ${maxSizeMb} Mo.`);
+  }
+}
+
+export class InvalidStorageBucketException extends DomainException {
+  constructor(bucket: string) {
+    super(`Bucket de stockage invalide ou non autorisé: "${bucket}".`);
+  }
+}
+
+export class CrossTenantAccessException extends DomainException {
+  constructor(message: string = "Accès inter-succursales interdit : vous n'avez pas l'autorisation d'accéder aux données de cette succursale.") {
+    super(message);
+  }
+}
+
+export class TenantContextMissingException extends DomainException {
+  constructor(message: string = 'Contexte de succursale manquant pour cette opération.') {
+    super(message);
+  }
+}
+
+

@@ -34,4 +34,24 @@ export function createAuthMiddleware(tokenService: ITokenServicePort = defaultTo
   };
 }
 
+export function createOptionalAuthMiddleware(tokenService: ITokenServicePort = defaultTokenService) {
+  return async (req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      try {
+        const payload = await tokenService.verify(token);
+        req.user = {
+          ...payload,
+          id: payload.userId,
+        };
+      } catch {
+        // Optional auth: continue without user if token is invalid or expired
+      }
+    }
+    next();
+  };
+}
+
 export const authMiddleware = createAuthMiddleware();
+export const optionalAuthMiddleware = createOptionalAuthMiddleware();

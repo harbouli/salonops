@@ -2,8 +2,11 @@ import { db, clients, eq, or, ilike, and, desc } from '@salonops/database';
 import { IClientRepository } from '../../domain/ports/client-repository.port';
 import { Client } from '../../domain/models/client.entity';
 import { MoroccanPhoneNumber } from '../../domain/value-objects/phone-number.vo';
+import { ITenantContextPort } from '../../domain/ports/tenant-context.port';
+import { withTenantBranchCondition } from './tenant-scoped-query.decorator';
 
 export class DrizzleClientRepository implements IClientRepository {
+  constructor(private readonly tenantPort?: ITenantContextPort) {}
   private toDomain(row: typeof clients.$inferSelect): Client {
     return new Client({
       id: row.id,
@@ -52,8 +55,13 @@ export class DrizzleClientRepository implements IClientRepository {
       or(ilike(clients.phone, `%${q}%`), ilike(clients.fullName, `%${q}%`)),
     ];
 
-    if (branchId) {
-      conditions.push(eq(clients.branchId, branchId));
+    const branchCondition = withTenantBranchCondition(
+      clients.branchId,
+      branchId,
+      this.tenantPort?.getTenant()
+    );
+    if (branchCondition) {
+      conditions.push(branchCondition);
     }
 
     const rows = await db

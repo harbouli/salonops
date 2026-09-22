@@ -11,6 +11,11 @@ import {
   InvalidValueException,
   InvalidCredentialsException,
   UnauthorizedAccessException,
+  UnsupportedFileTypeException,
+  FileTooLargeException,
+  InvalidStorageBucketException,
+  CrossTenantAccessException,
+  TenantContextMissingException,
 } from '../../domain/exceptions/domain.exception';
 
 
@@ -101,10 +106,55 @@ export function errorHandlerMiddleware(
     return;
   }
 
+  // Cross-Tenant Access Error (Multi-branch isolation)
+  if (err instanceof CrossTenantAccessException) {
+    res.status(403).json({
+      error: 'Accès inter-succursales interdit',
+      message: err.message,
+    });
+    return;
+  }
+
+  // Tenant Context Missing Error
+  if (err instanceof TenantContextMissingException) {
+    res.status(400).json({
+      error: 'Contexte succursale manquant',
+      message: err.message,
+    });
+    return;
+  }
+
   // Invalid Value (e.g. money, phone)
   if (err instanceof InvalidValueException) {
     res.status(400).json({
       error: 'Valeur invalide',
+      message: err.message,
+    });
+    return;
+  }
+
+  // Unsupported File Type
+  if (err instanceof UnsupportedFileTypeException) {
+    res.status(422).json({
+      error: 'Format non supporté',
+      message: err.message,
+    });
+    return;
+  }
+
+  // File Too Large
+  if (err instanceof FileTooLargeException) {
+    res.status(413).json({
+      error: 'Fichier trop volumineux',
+      message: err.message,
+    });
+    return;
+  }
+
+  // Invalid Storage Bucket
+  if (err instanceof InvalidStorageBucketException) {
+    res.status(400).json({
+      error: 'Bucket invalide',
       message: err.message,
     });
     return;
