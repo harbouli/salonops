@@ -11,6 +11,7 @@ import { ServiceController } from './presentation/controllers/service.controller
 import { ClientController } from './presentation/controllers/client.controller';
 import { CheckoutController } from './presentation/controllers/checkout.controller';
 import { AuthController } from './presentation/controllers/auth.controller';
+import { DocsController } from './presentation/docs/docs.controller';
 
 import { createAppointmentRouter } from './presentation/routes/appointment.routes';
 import { createStylistRouter } from './presentation/routes/stylist.routes';
@@ -19,6 +20,8 @@ import { createClientRouter } from './presentation/routes/client.routes';
 import { createCheckoutRouter } from './presentation/routes/checkout.routes';
 import { createAuthRouter } from './presentation/routes/auth.routes';
 import { createHealthRouter } from './presentation/routes/health.routes';
+import { createDocsRouter } from './presentation/routes/docs.routes';
+import { isDocsRequest } from './presentation/docs/docs.middleware';
 import { errorHandlerMiddleware } from './presentation/middleware/error-handler.middleware';
 import { createAuthMiddleware } from './presentation/middleware/auth.middleware';
 
@@ -26,16 +29,43 @@ export function createApp(container: AppContainer = createContainer()): Express 
   const app = express();
 
   // Security & Utility Middlewares
-  app.use(helmet());
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: [
+            "'self'",
+            "'unsafe-inline'",
+            "'unsafe-eval'",
+            'https://cdn.jsdelivr.net',
+            'https://unpkg.com',
+            'https://scalar.com',
+          ],
+          styleSrc: [
+            "'self'",
+            "'unsafe-inline'",
+            'https://fonts.googleapis.com',
+            'https://cdn.jsdelivr.net',
+            'https://unpkg.com',
+          ],
+          fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:', 'https://cdn.jsdelivr.net'],
+          imgSrc: ["'self'", 'data:', 'https:', 'blob:'],
+          connectSrc: ["'self'", 'https:', 'data:'],
+        },
+      },
+    })
+  );
   app.use(cors({ origin: true, credentials: true }));
   app.use(morgan('dev'));
   app.use(express.json({ limit: '10mb' }));
 
-  // Global Rate Limiter
+  // Global Rate Limiter (Skipping Documentation Endpoints)
   const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 200,
     message: { error: 'Trop de requêtes, veuillez réessayer plus tard.' },
+    skip: (req) => isDocsRequest(req.path),
   });
   app.use(limiter);
 
@@ -57,8 +87,10 @@ export function createApp(container: AppContainer = createContainer()): Express 
     container.saveHairFormulaUseCase
   );
   const checkoutController = new CheckoutController(container.processCheckoutUseCase);
+  const docsController = new DocsController();
 
   // Mount API Routers (Inbound Adapters)
+  app.use('/', createDocsRouter(docsController));
   app.use('/health', createHealthRouter());
   app.use('/api/v1/auth', createAuthRouter(authController, authGuard));
   app.use('/api/v1/stylists', createStylistRouter(stylistController));
