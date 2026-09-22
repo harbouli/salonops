@@ -8,6 +8,7 @@ export * from './models/client.entity';
 export * from './models/service.entity';
 export * from './models/hair-formula.entity';
 export * from './models/transaction.entity';
+export * from './models/user.entity';
 export * from './services/appointment-collision.service';
 export * from './ports/appointment-repository.port';
 export * from './ports/stylist-repository.port';
@@ -16,3 +17,7 @@ export * from './ports/service-repository.port';
 export * from './ports/hair-formula-repository.port';
 export * from './ports/transaction-repository.port';
 export * from './ports/distributed-lock.port';
+export * from './ports/password-hasher.port';
+export * from './ports/token-service.port';
+export * from './ports/user-repository.port';
+

@@ -7,7 +7,10 @@ import {
   InvalidAppointmentStateException,
   EntityNotFoundException,
   InvalidValueException,
+  InvalidCredentialsException,
+  UnauthorizedAccessException,
 } from '../../domain/exceptions/domain.exception';
+
 
 export function errorHandlerMiddleware(
   err: any,
@@ -60,6 +63,24 @@ export function errorHandlerMiddleware(
     return;
   }
 
+  // Invalid Credentials Error
+  if (err instanceof InvalidCredentialsException) {
+    res.status(401).json({
+      error: 'Identifiants invalides',
+      message: err.message,
+    });
+    return;
+  }
+
+  // Unauthorized Access Error
+  if (err instanceof UnauthorizedAccessException) {
+    res.status(403).json({
+      error: 'Accès interdit',
+      message: err.message,
+    });
+    return;
+  }
+
   // Invalid Value (e.g. money, phone)
   if (err instanceof InvalidValueException) {
     res.status(400).json({
@@ -68,6 +89,7 @@ export function errorHandlerMiddleware(
     });
     return;
   }
+
 
   // Generic Domain Error
   if (err instanceof DomainException) {

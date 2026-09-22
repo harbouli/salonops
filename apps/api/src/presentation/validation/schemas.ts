@@ -40,3 +40,9 @@ export const processCheckoutSchema = z.object({
   cashAmountMad: z.union([z.number(), z.string()]).optional(),
   cardAmountMad: z.union([z.number(), z.string()]).optional(),
 });
+
+export const loginSchema = z.object({
+  phone: z.string().min(1, 'Le numéro de téléphone est requis'),
+  password: z.string().min(1, 'Le mot de passe est requis'),
+});
+

@@ -7,6 +7,7 @@ export * from './ports/get-services.port';
 export * from './ports/search-clients.port';
 export * from './ports/hair-formulas.port';
 export * from './ports/process-checkout.port';
+export * from './ports/auth.port';
 
 export * from './use-cases/book-appointment.use-case';
 export * from './use-cases/get-appointments.use-case';
@@ -16,3 +17,5 @@ export * from './use-cases/get-services.use-case';
 export * from './use-cases/search-clients.use-case';
 export * from './use-cases/hair-formulas.use-cases';
 export * from './use-cases/process-checkout.use-case';
+export * from './use-cases/authenticate-user.use-case';
+

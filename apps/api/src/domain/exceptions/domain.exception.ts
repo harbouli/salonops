@@ -35,3 +35,16 @@ export class InvalidValueException extends DomainException {
     super(message);
   }
 }
+
+export class InvalidCredentialsException extends DomainException {
+  constructor(message: string = 'Numéro de téléphone ou mot de passe incorrect.') {
+    super(message);
+  }
+}
+
+export class UnauthorizedAccessException extends DomainException {
+  constructor(message: string = 'Accès non autorisé ou autorisations insuffisantes.') {
+    super(message);
+  }
+}
+
