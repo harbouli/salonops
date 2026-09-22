@@ -12,8 +12,10 @@
     "lint": "eslint src/**/*.ts"
   },
   "dependencies": {
+    "@asteasolutions/zod-to-openapi": "^7.3.4",
     "@salonops/database": "workspace:*",
     "@salonops/shared-types": "workspace:*",
+    "@scalar/express-api-reference": "^0.10.19",
     "argon2": "^0.41.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
