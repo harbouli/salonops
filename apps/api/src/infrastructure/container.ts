@@ -12,6 +12,8 @@ import { MinioStorageAdapter } from './storage/minio-storage.adapter';
 import { IObjectStoragePort } from '../domain/ports/object-storage.port';
 import { ITenantContextPort } from '../domain/ports/tenant-context.port';
 import { AsyncLocalStorageTenantContextAdapter } from './tenant/async-local-storage-tenant-context.adapter';
+import { IRateLimiterPort } from '../domain/ports/rate-limiter.port';
+import { RedisRateLimiterAdapter } from './security/redis-rate-limiter.adapter';
 
 import { BookAppointmentUseCase } from '../application/use-cases/book-appointment.use-case';
 import { GetAppointmentsUseCase } from '../application/use-cases/get-appointments.use-case';
@@ -41,6 +43,7 @@ export interface AppContainer {
   tokenService: JwtTokenAdapter;
   storageAdapter: IObjectStoragePort;
   tenantContextPort: ITenantContextPort;
+  rateLimiterPort: IRateLimiterPort;
 
   // Use Cases (Application Layer Inbound Ports)
   bookAppointmentUseCase: BookAppointmentUseCase;
@@ -73,6 +76,7 @@ export function createContainer(): AppContainer {
   const passwordHasher = new Argon2PasswordHasherAdapter();
   const tokenService = new JwtTokenAdapter();
   const storageAdapter = new MinioStorageAdapter();
+  const rateLimiterPort = new RedisRateLimiterAdapter();
 
   // Application Use Cases
   const bookAppointmentUseCase = new BookAppointmentUseCase(
@@ -121,6 +125,7 @@ export function createContainer(): AppContainer {
     tokenService,
     storageAdapter,
     tenantContextPort,
+    rateLimiterPort,
 
     bookAppointmentUseCase,
     getAppointmentsUseCase,

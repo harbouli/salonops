@@ -22,8 +22,10 @@ describe('RevokeSessionUseCase', () => {
     const useCase = new RevokeSessionUseCase(blacklistPort);
 
     // Provide a mocked JWT string. The UseCase will decode it using jwt.decode.
-    // Instead of mocking jwt.decode globally, we can use a real unsigned token just for decoding logic testing.
-    const jwtString = 'header.' + Buffer.from(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 3600 })).toString('base64') + '.sig';
+    // Use valid base64url format for header and payload so jwt.decode parses it accurately.
+    const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
+    const payload = Buffer.from(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 3600 })).toString('base64url');
+    const jwtString = `${header}.${payload}.signature`;
 
     await useCase.execute(jwtString);
 
@@ -46,7 +48,9 @@ describe('RevokeSessionUseCase', () => {
     const blacklistPort = new MockTokenBlacklistPort();
     const useCase = new RevokeSessionUseCase(blacklistPort);
 
-    const jwtString = 'header.' + Buffer.from(JSON.stringify({ exp: Math.floor(Date.now() / 1000) - 3600 })).toString('base64') + '.sig';
+    const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
+    const payload = Buffer.from(JSON.stringify({ exp: Math.floor(Date.now() / 1000) - 3600 })).toString('base64url');
+    const jwtString = `${header}.${payload}.signature`;
     await useCase.execute(jwtString);
 
     assert.equal(blacklistPort.revokedTokens.size, 0); // TTL < 0

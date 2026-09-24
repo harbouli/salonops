@@ -2,7 +2,6 @@ import express, { Express, Request, Response, RequestHandler } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import rateLimit from 'express-rate-limit';
 
 import { AppContainer, createContainer } from './infrastructure/container';
 import { AppointmentController } from './presentation/controllers/appointment.controller';
@@ -27,6 +26,7 @@ import { isDocsRequest } from './presentation/docs/docs.middleware';
 import { errorHandlerMiddleware } from './presentation/middleware/error-handler.middleware';
 import { createAuthMiddleware, createOptionalAuthMiddleware } from './presentation/middleware/auth.middleware';
 import { createTenantGuardMiddleware } from './presentation/middleware/tenant-guard.middleware';
+import { createRateLimiterMiddleware } from './presentation/middleware/rate-limiter.middleware';
 
 export function createApp(container: AppContainer = createContainer()): Express {
   const app = express();
@@ -63,14 +63,30 @@ export function createApp(container: AppContainer = createContainer()): Express 
   app.use(morgan('dev'));
   app.use(express.json({ limit: '10mb' }));
 
-  // Global Rate Limiter (Skipping Documentation Endpoints)
-  const limiter = rateLimit({
+  // Tiered Rate Limiting Middlewares (Port & Adapter driven)
+  const staffRateLimiter = createRateLimiterMiddleware(container.rateLimiterPort, {
+    tierName: 'staff',
+    limit: 200,
     windowMs: 15 * 60 * 1000,
-    max: 200,
-    message: { error: 'Trop de requêtes, veuillez réessayer plus tard.' },
-    skip: (req) => isDocsRequest(req.path),
+    message: 'Trop de requêtes, quota opérations internes dépassé.',
   });
-  app.use(limiter);
+
+  const authRateLimiter = createRateLimiterMiddleware(container.rateLimiterPort, {
+    tierName: 'auth',
+    limit: 5,
+    windowMs: 15 * 60 * 1000,
+    message: 'Trop de tentatives de connexion ou requêtes SMS/OTP. Veuillez réessayer dans 15 minutes.',
+  });
+
+  const bookingRateLimiter = createRateLimiterMiddleware(container.rateLimiterPort, {
+    tierName: 'booking',
+    limit: 30,
+    windowMs: 15 * 60 * 1000,
+    message: 'Trop de requêtes de réservation publique. Veuillez réessayer plus tard.',
+  });
+
+  // Global default rate limiter applied to all non-doc endpoints
+  app.use(staffRateLimiter);
 
   // Auth Middleware with container token service
   const authGuard = createAuthMiddleware(container.tokenService) as unknown as RequestHandler;
@@ -100,10 +116,10 @@ export function createApp(container: AppContainer = createContainer()): Express 
   // Mount API Routers (Inbound Adapters)
   app.use('/', createDocsRouter(docsController));
   app.use('/health', createHealthRouter());
-  app.use('/api/v1/auth', createAuthRouter(authController, authGuard));
+  app.use('/api/v1/auth', createAuthRouter(authController, authGuard, authRateLimiter));
   app.use('/api/v1/stylists', optionalAuth, tenantGuard, createStylistRouter(stylistController));
   app.use('/api/v1/services', optionalAuth, tenantGuard, createServiceRouter(serviceController));
-  app.use('/api/v1/appointments', optionalAuth, tenantGuard, createAppointmentRouter(appointmentController));
+  app.use('/api/v1/appointments', optionalAuth, tenantGuard, createAppointmentRouter(appointmentController, bookingRateLimiter));
   app.use('/api/v1/clients', optionalAuth, tenantGuard, createClientRouter(clientController));
   app.use('/api/v1/checkout', optionalAuth, tenantGuard, createCheckoutRouter(checkoutController));
   app.use('/api/v1/storage', optionalAuth, tenantGuard, createStorageRouter(storageController, authGuard));
