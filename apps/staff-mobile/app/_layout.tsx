@@ -25,6 +25,8 @@ export default function RootLayout() {
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="visit-details" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="new-appointment" options={{ presentation: 'modal' }} />
       </Stack>
     </SafeAreaProvider>
   );
