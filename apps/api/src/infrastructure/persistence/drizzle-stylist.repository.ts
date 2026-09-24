@@ -34,7 +34,7 @@ export class DrizzleStylistRepository implements IStylistRepository {
   }
 
   public async findAllActive(branchId?: string): Promise<Stylist[]> {
-    const conditions = [eq(users.isActive, true)];
+    const conditions = [eq(users.isActive, true), eq(users.role, 'STYLIST')];
 
     const branchCondition = withTenantBranchCondition(
       users.branchId,

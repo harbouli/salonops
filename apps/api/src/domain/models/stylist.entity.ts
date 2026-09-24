@@ -51,4 +51,44 @@ export class Stylist {
     }
     return timeSlot.isWithinWorkingHours(this.workingStart, this.workingEnd);
   }
+
+  public getShiftScheduleWindow(referenceDate: Date | string = new Date()): StylistShiftSchedule {
+    const canTake = this.canTakeAppointments();
+    if (!canTake) {
+      return {
+        workingStart: this.workingStart,
+        workingEnd: this.workingEnd,
+        isDayOff: this.isDayOff,
+        canTakeAppointments: false,
+        startISO: null,
+        endISO: null,
+      };
+    }
+
+    const d = typeof referenceDate === 'string' ? new Date(referenceDate) : referenceDate;
+    const year = d.getUTCFullYear();
+    const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(d.getUTCDate()).padStart(2, '0');
+
+    const startISO = new Date(`${year}-${month}-${day}T${this.workingStart}:00.000Z`).toISOString();
+    const endISO = new Date(`${year}-${month}-${day}T${this.workingEnd}:00.000Z`).toISOString();
+
+    return {
+      workingStart: this.workingStart,
+      workingEnd: this.workingEnd,
+      isDayOff: this.isDayOff,
+      canTakeAppointments: true,
+      startISO,
+      endISO,
+    };
+  }
+}
+
+export interface StylistShiftSchedule {
+  workingStart: string;
+  workingEnd: string;
+  isDayOff: boolean;
+  canTakeAppointments: boolean;
+  startISO: string | null;
+  endISO: string | null;
 }

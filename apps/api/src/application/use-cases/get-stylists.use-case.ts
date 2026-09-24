@@ -25,18 +25,29 @@ export class GetStylistsUseCase implements IGetStylistsUseCase {
 
     const stylists = await this.stylistRepo.findAllActive(effectiveBranchId);
 
-    return stylists.map((s) => ({
-      id: s.id,
-      branchId: s.branchId,
-      fullName: s.fullName,
-      phone: s.phone,
-      role: s.role,
-      avatarUrl: s.avatarUrl,
-      commissionPct: s.commissionPct,
-      isActive: s.isActive,
-      isDayOff: s.isDayOff,
-      workingStart: s.workingStart,
-      workingEnd: s.workingEnd,
-    }));
+    return stylists.map((s) => {
+      const schedule = s.getShiftScheduleWindow();
+      return {
+        id: s.id,
+        branchId: s.branchId,
+        fullName: s.fullName,
+        phone: s.phone,
+        role: s.role,
+        avatarUrl: s.avatarUrl,
+        commissionPct: s.commissionPct,
+        isActive: s.isActive,
+        isDayOff: s.isDayOff,
+        workingStart: s.workingStart,
+        workingEnd: s.workingEnd,
+        shiftSchedule: {
+          workingStart: schedule.workingStart,
+          workingEnd: schedule.workingEnd,
+          isDayOff: schedule.isDayOff,
+          canTakeAppointments: schedule.canTakeAppointments,
+          startISO: schedule.startISO,
+          endISO: schedule.endISO,
+        },
+      };
+    });
   }
 }

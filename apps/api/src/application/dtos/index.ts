@@ -26,6 +26,15 @@ export interface AppointmentResponseDTO {
   updatedAt: string;
 }
 
+export interface StylistShiftScheduleDTO {
+  workingStart: string;
+  workingEnd: string;
+  isDayOff: boolean;
+  canTakeAppointments: boolean;
+  startISO?: string | null;
+  endISO?: string | null;
+}
+
 export interface StylistResponseDTO {
   id: string;
   branchId: string;
@@ -38,6 +47,7 @@ export interface StylistResponseDTO {
   isDayOff: boolean;
   workingStart: string;
   workingEnd: string;
+  shiftSchedule?: StylistShiftScheduleDTO;
 }
 
 export interface ServiceResponseDTO {
