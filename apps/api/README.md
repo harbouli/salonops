@@ -1,17 +1,60 @@
 # `@salonops/api` ⚙️
 
-> **Node.js 22 LTS & Express.js REST API with Drizzle ORM, PostgreSQL 16, and Redis Redlock distributed concurrency locking.**
+> **Node.js 24 LTS & Express.js REST API with Drizzle ORM, PostgreSQL 16, and Redis Redlock distributed concurrency locking.**
 
 ---
 
 ## 🌟 Highlights & Architecture
 
-- **Clean Modular Routing**: Dedicated Express routers for `auth`, `stylists`, `services`, `appointments`, `clients`, and `health`.
-- **Drizzle ORM Integration**: Type-safe relational queries using Drizzle ORM and `postgres` driver.
-- **Strict Stylist RBAC**: Granular role-based access control protecting salon turnover, gross margins, and owner analytics from floor staff.
-- **Collision Prevention & Redlock**: Redis Redlock distributed locking during slot booking prevents double-booking race conditions.
-- **Security & Headers**: Armed with `helmet`, CORS policy, rate limiting, and argon2 password hashing.
-- **Docker Ready**: Multi-stage production Docker build (`Dockerfile`).
+Built with strict **Clean Architecture**, **Domain-Driven Design (DDD)**, and **Hexagonal Architecture (Ports and Adapters)**:
+
+```text
+                     ┌───────────────────────────────────────────────────────────┐
+                     │                  DRIVING ADAPTERS (INBOUND)               │
+                     │  - Express REST Controllers (/api/v1/appointments, etc.)  │
+                     │  - HTTP Request Validation (Zod Schemas)                  │
+                     │  - Centralized Error Handler (Domain -> HTTP Status)      │
+                     └─────────────────────────────┬─────────────────────────────┘
+                                                   │ calls
+                                                   ▼
+┌──────────────────────────────────────────────────┴──────────────────────────────────────────────────┐
+│                                       HEXAGON BOUNDARY                                              │
+│                                                                                                     │
+│   ┌─────────────────────────────────────────────────────────────────────────────────────────────┐   │
+│   │                                 APPLICATION LAYER                                           │   │
+│   │   Inbound Ports (Use Cases) & Application Services:                                         │   │
+│   │   - BookAppointmentUseCase, GetAppointmentsUseCase, UpdateAppointmentStatusUseCase          │   │
+│   │   - GetStylistsUseCase, GetServicesUseCase                                                  │   │
+│   │   - SearchClientsUseCase, SaveHairFormulaUseCase, GetClientFormulasUseCase                  │   │
+│   │   - ProcessCheckoutUseCase                                                                  │   │
+│   └──────────────────────────────────────────────┬──────────────────────────────────────────────┘   │
+│                                                  │ orchestrates                                     │
+│                                                  ▼                                                  │
+│   ┌─────────────────────────────────────────────────────────────────────────────────────────────┐   │
+│   │                                   DOMAIN LAYER (CORE)                                       │   │
+│   │   Aggregate Roots & Entities:                                                               │   │
+│   │   - Appointment, Stylist, Client, Service, HairFormula, Transaction                         │   │
+│   │   Value Objects:                                                                            │   │
+│   │   - TimeSlot (interval overlap & Moroccan buffer logic)                                     │   │
+│   │   - Money (Moroccan Dirham MAD, zero-float precision, commission %)                         │   │
+│   │   - MoroccanPhoneNumber (strict 212 / 06 / 07 normalization)                                │   │
+│   │   Domain Services & Exceptions:                                                             │   │
+│   │   - AppointmentCollisionService, SlotCollisionException, StylistUnavailableException       │   │
+│   │   Outbound Ports (Driven Interfaces):                                                       │   │
+│   │   - IAppointmentRepository, IStylistRepository, IClientRepository, IServiceRepository       │   │
+│   │   - IHairFormulaRepository, ITransactionRepository, IDistributedLockPort                   │   │
+│   └──────────────────────────────────────────────┬──────────────────────────────────────────────┘   │
+│                                                  │                                                  │
+└──────────────────────────────────────────────────┼──────────────────────────────────────────────────┘
+                                                   │ implemented by
+                                                   ▼
+                     ┌───────────────────────────────────────────────────────────┐
+                     │                  DRIVEN ADAPTERS (OUTBOUND)               │
+                     │  - Drizzle ORM Repositories (PostgreSQL 16)                │
+                     │  - Redis Redlock Distributed Concurrency Adapter          │
+                     │  - In-Memory Lock Fallback (for testing / offline dev)    │
+                     └───────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -20,21 +63,33 @@
 ```text
 apps/api/
 ├── src/
-│   ├── middleware/
-│   │   ├── auth.ts              # JWT authentication & Bearer token extraction
-│   │   └── rbac.ts              # Role-Based Access Control (OWNER, MANAGER, STYLIST)
-│   ├── routes/
-│   │   ├── health.ts            # GET /health health check probe
-│   │   ├── stylists.ts          # GET /api/v1/stylists (stylist listing & profiles)
-│   │   ├── services.ts          # GET /api/v1/services (service catalog in MAD)
-│   │   ├── appointments.ts      # GET/POST /api/v1/appointments with slot collision check
-│   │   └── clients.ts           # GET/POST /api/v1/clients & hair formula vault
-│   └── server.ts                # Express application bootstrapping & middleware stack
-├── Dockerfile                   # Multi-stage production container build
-├── .dockerignore                # Docker build ignore rules
-├── .env.example                 # Example environment variables
-├── package.json                 # API dependencies & scripts
-└── tsconfig.json                # TypeScript configuration
+│   ├── domain/                            # Enterprise Domain Core (Zero external deps)
+│   │   ├── exceptions/                    # Domain Exceptions (SlotCollision, StylistUnavailable, etc.)
+│   │   ├── models/                        # Entities & Aggregate Roots (Appointment, Transaction, Client...)
+│   │   ├── ports/                         # Driven Outbound Ports (Repository & Lock Interfaces)
+│   │   ├── services/                      # Domain Services (AppointmentCollisionService)
+│   │   └── value-objects/                 # Value Objects (Money, TimeSlot, MoroccanPhoneNumber)
+│   ├── application/                       # Application Layer (Orchestration & Use Cases)
+│   │   ├── dtos/                          # Application DTOs & Mappings
+│   │   ├── ports/                         # Inbound Ports (Use Case Interfaces)
+│   │   └── use-cases/                     # Inbound Port Implementations (BookAppointment, Checkout...)
+│   ├── infrastructure/                    # Driven Adapters (External Technologies)
+│   │   ├── concurrency/                   # Redis Redlock & Memory Lock Adapters
+│   │   ├── persistence/                   # Drizzle ORM Repositories
+│   │   └── container.ts                   # Composition Root / Dependency Injection
+│   ├── presentation/                      # Driving Adapters (HTTP Express)
+│   │   ├── controllers/                   # REST API Controllers
+│   │   ├── middleware/                    # Centralized Domain Error Handler & Auth Guards
+│   │   ├── routes/                        # Express Router Definitions
+│   │   └── validation/                    # Zod Request Validation Schemas
+│   ├── app.ts                             # Express Application Factory (wired via Container)
+│   └── server.ts                          # Server Bootstrapping & Process Management
+├── test/                                  # Isolated Unit & Application Tests (node:test + tsx)
+│   ├── application/                       # Use Case Orchestration Tests with Mocked Ports
+│   └── domain/                            # Pure Domain & Value Object Tests (No DB needed)
+├── Dockerfile                             # Multi-stage production container build (Node.js 24 Alpine)
+├── package.json                           # API dependencies & test scripts
+└── tsconfig.json                          # TypeScript configuration
 ```
 
 ---
@@ -51,6 +106,14 @@ JWT_SECRET="super-secret-jwt-key-for-moroccan-salon-platform"
 JWT_EXPIRES_IN="15m"
 JWT_REFRESH_EXPIRES_IN="7d"
 CORS_ORIGIN="*"
+
+# MinIO S3 Object Storage
+MINIO_ENDPOINT="localhost"
+MINIO_PORT=9000
+MINIO_USE_SSL=false
+MINIO_ACCESS_KEY="minioadmin"
+MINIO_SECRET_KEY="minioadmin"
+MINIO_BUCKET_NAME="salonops-media"
 ```
 
 ---

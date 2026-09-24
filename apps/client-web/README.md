@@ -1,6 +1,6 @@
 # `@salonops/client-web` 🌐
 
-> **Mobile-responsive client booking web application built with React 18.3, Vite, and Tailwind CSS, engineered for Instagram and WhatsApp bio links.**
+> **Mobile-responsive client booking web application built with React 19.3, Vite, and Tailwind CSS, engineered for Instagram and WhatsApp bio links.**
 
 ---
 
