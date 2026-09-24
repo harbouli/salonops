@@ -6,3 +6,4 @@ export * from './clients';
 export * from './appointments';
 export * from './formulas';
 export * from './transactions';
+export * from './audit_logs';

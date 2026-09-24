@@ -28,6 +28,9 @@ import { GetCaisseReconciliationUseCase } from '../application/use-cases/get-cai
 import { AuthenticateUserUseCase } from '../application/use-cases/authenticate-user.use-case';
 import { GenerateUploadUrlUseCase } from '../application/use-cases/generate-upload-url.use-case';
 
+import { DrizzleAuditLogRepository } from './persistence/drizzle-audit-log.repository';
+import { RecordAuditEventUseCase } from '../application/use-cases/record-audit-event.use-case';
+
 export interface AppContainer {
   // Repositories & Adapters (Driven Adapters)
   appointmentRepo: DrizzleAppointmentRepository;
@@ -37,6 +40,7 @@ export interface AppContainer {
   hairFormulaRepo: DrizzleHairFormulaRepository;
   transactionRepo: DrizzleTransactionRepository;
   userRepo: DrizzleUserRepository;
+  auditLogRepo: DrizzleAuditLogRepository;
   lockService: RedisDistributedLockAdapter;
   passwordHasher: Argon2PasswordHasherAdapter;
   tokenService: JwtTokenAdapter;
@@ -56,6 +60,7 @@ export interface AppContainer {
   getCaisseReconciliationUseCase: GetCaisseReconciliationUseCase;
   authenticateUserUseCase: AuthenticateUserUseCase;
   generateUploadUrlUseCase: GenerateUploadUrlUseCase;
+  recordAuditEventUseCase: RecordAuditEventUseCase;
 }
 
 
@@ -71,6 +76,7 @@ export function createContainer(): AppContainer {
   const hairFormulaRepo = new DrizzleHairFormulaRepository();
   const transactionRepo = new DrizzleTransactionRepository(tenantContextPort);
   const userRepo = new DrizzleUserRepository();
+  const auditLogRepo = new DrizzleAuditLogRepository(tenantContextPort);
   const lockService = new RedisDistributedLockAdapter();
   const passwordHasher = new Argon2PasswordHasherAdapter();
   const tokenService = new JwtTokenAdapter();
@@ -114,6 +120,7 @@ export function createContainer(): AppContainer {
     tokenService
   );
   const generateUploadUrlUseCase = new GenerateUploadUrlUseCase(storageAdapter);
+  const recordAuditEventUseCase = new RecordAuditEventUseCase(auditLogRepo, tenantContextPort);
 
   return {
     appointmentRepo,
@@ -123,6 +130,7 @@ export function createContainer(): AppContainer {
     hairFormulaRepo,
     transactionRepo,
     userRepo,
+    auditLogRepo,
     lockService,
     passwordHasher,
     tokenService,
@@ -141,6 +149,7 @@ export function createContainer(): AppContainer {
     getCaisseReconciliationUseCase,
     authenticateUserUseCase,
     generateUploadUrlUseCase,
+    recordAuditEventUseCase,
   };
 }
 

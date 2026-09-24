@@ -187,3 +187,23 @@ export interface GenerateUploadUrlResponseDTO {
   objectKey: string;
   expiresInSeconds: number;
 }
+
+export interface RecordAuditEventDTO {
+  actorId?: string | null;
+  branchId?: string | null;
+  actionType: string;
+  entityType: string;
+  entityId: string;
+  changeDiff: Record<string, any>;
+}
+
+export interface AuditLogResponseDTO {
+  id: string;
+  actorId: string | null;
+  branchId: string | null;
+  actionType: string;
+  entityType: string;
+  entityId: string;
+  changeDiff: Record<string, any>;
+  createdAt: string;
+}
