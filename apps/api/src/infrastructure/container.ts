@@ -24,6 +24,7 @@ import {
   SaveHairFormulaUseCase,
 } from '../application/use-cases/hair-formulas.use-cases';
 import { ProcessCheckoutUseCase } from '../application/use-cases/process-checkout.use-case';
+import { GetCaisseReconciliationUseCase } from '../application/use-cases/get-caisse-reconciliation.use-case';
 import { AuthenticateUserUseCase } from '../application/use-cases/authenticate-user.use-case';
 import { GenerateUploadUrlUseCase } from '../application/use-cases/generate-upload-url.use-case';
 
@@ -52,6 +53,7 @@ export interface AppContainer {
   getClientFormulasUseCase: GetClientFormulasUseCase;
   saveHairFormulaUseCase: SaveHairFormulaUseCase;
   processCheckoutUseCase: ProcessCheckoutUseCase;
+  getCaisseReconciliationUseCase: GetCaisseReconciliationUseCase;
   authenticateUserUseCase: AuthenticateUserUseCase;
   generateUploadUrlUseCase: GenerateUploadUrlUseCase;
 }
@@ -67,7 +69,7 @@ export function createContainer(): AppContainer {
   const clientRepo = new DrizzleClientRepository(tenantContextPort);
   const serviceRepo = new DrizzleServiceRepository(tenantContextPort);
   const hairFormulaRepo = new DrizzleHairFormulaRepository();
-  const transactionRepo = new DrizzleTransactionRepository();
+  const transactionRepo = new DrizzleTransactionRepository(tenantContextPort);
   const userRepo = new DrizzleUserRepository();
   const lockService = new RedisDistributedLockAdapter();
   const passwordHasher = new Argon2PasswordHasherAdapter();
@@ -99,7 +101,12 @@ export function createContainer(): AppContainer {
     transactionRepo,
     appointmentRepo,
     stylistRepo,
-    clientRepo
+    clientRepo,
+    tenantContextPort
+  );
+  const getCaisseReconciliationUseCase = new GetCaisseReconciliationUseCase(
+    transactionRepo,
+    tenantContextPort
   );
   const authenticateUserUseCase = new AuthenticateUserUseCase(
     userRepo,
@@ -131,6 +138,7 @@ export function createContainer(): AppContainer {
     getClientFormulasUseCase,
     saveHairFormulaUseCase,
     processCheckoutUseCase,
+    getCaisseReconciliationUseCase,
     authenticateUserUseCase,
     generateUploadUrlUseCase,
   };

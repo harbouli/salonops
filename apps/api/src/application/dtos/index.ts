@@ -124,11 +124,50 @@ export interface CheckoutResponseDTO {
   retailTotalMad: string;
   tipAmountMad: string;
   grandTotalMad: string;
+  totalPaidMad: string;
+  changeDueMad: string;
+  netSalonRevenueMad: string;
   paymentMethod: PaymentMethod;
   cashAmountMad: string;
   cardAmountMad: string;
   stylistCommissionMad: string;
   createdAt: string;
+}
+
+export interface GetCaisseReconciliationDTO {
+  branchId: string;
+  date?: string;
+  openingCashMad?: number | string;
+  actualCashMad?: number | string;
+}
+
+export interface StylistCaisseBreakdownDTO {
+  stylistId: string;
+  serviceRevenueMad: string;
+  commissionMad: string;
+  tipsMad: string;
+  transactionCount: number;
+}
+
+export interface CaisseReconciliationResponseDTO {
+  branchId: string;
+  date: string;
+  openingCashMad: string;
+  totalCashMad: string;
+  totalCardMad: string;
+  totalPaidMad: string;
+  totalServiceRevenueMad: string;
+  totalRetailRevenueMad: string;
+  totalGrossRevenueMad: string;
+  totalTipsMad: string;
+  totalCommissionsMad: string;
+  netSalonRevenueMad: string;
+  transactionCount: number;
+  expectedDrawerCashMad: string;
+  actualCashMad?: string | null;
+  varianceMad?: string | null;
+  isBalanced: boolean;
+  stylistBreakdowns: StylistCaisseBreakdownDTO[];
 }
 
 export type StorageBucket = 'salonops-hair-photos' | 'salonops-receipts';

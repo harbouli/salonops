@@ -133,6 +133,41 @@ export function buildOpenApiDocument() {
     })
   );
 
+  const StylistCaisseBreakdownSchema = registry.register(
+    'StylistCaisseBreakdown',
+    z.object({
+      stylistId: z.string().uuid(),
+      serviceRevenueMad: z.string().openapi({ example: '600.00' }),
+      commissionMad: z.string().openapi({ example: '90.00' }),
+      tipsMad: z.string().openapi({ example: '50.00' }),
+      transactionCount: z.number().int().openapi({ example: 3 }),
+    })
+  );
+
+  const CaisseReconciliationSchema = registry.register(
+    'CaisseReconciliation',
+    z.object({
+      branchId: z.string().uuid(),
+      date: z.string().openapi({ example: '2026-09-24' }),
+      openingCashMad: z.string().openapi({ example: '500.00' }),
+      totalCashMad: z.string().openapi({ example: '2450.00' }),
+      totalCardMad: z.string().openapi({ example: '1800.00' }),
+      totalPaidMad: z.string().openapi({ example: '4250.00' }),
+      totalServiceRevenueMad: z.string().openapi({ example: '3800.00' }),
+      totalRetailRevenueMad: z.string().openapi({ example: '450.00' }),
+      totalGrossRevenueMad: z.string().openapi({ example: '4250.00' }),
+      totalTipsMad: z.string().openapi({ example: '320.00' }),
+      totalCommissionsMad: z.string().openapi({ example: '570.00' }),
+      netSalonRevenueMad: z.string().openapi({ example: '3680.00' }),
+      transactionCount: z.number().int().openapi({ example: 12 }),
+      expectedDrawerCashMad: z.string().openapi({ example: '2950.00' }),
+      actualCashMad: z.string().nullable().optional().openapi({ example: '2950.00' }),
+      varianceMad: z.string().nullable().optional().openapi({ example: '0.00' }),
+      isBalanced: z.boolean().openapi({ example: true }),
+      stylistBreakdowns: z.array(StylistCaisseBreakdownSchema),
+    })
+  );
+
   const ErrorResponseSchema = registry.register(
     'ErrorResponse',
     z.object({
@@ -560,6 +595,99 @@ export function buildOpenApiDocument() {
       },
       400: {
         description: 'Invariants de paiement non respectés (Sous-paiement ou ventilations incorrectes)',
+        content: {
+          'application/json': {
+            schema: BilingualErrorResponseSchema,
+          },
+        },
+      },
+    },
+  });
+
+  // Caisse Reconciliation: GET /api/v1/checkout/reconciliation
+  registry.registerPath({
+    method: 'get',
+    path: '/api/v1/checkout/reconciliation',
+    summary: 'Rapprochement de Caisse de Fin de Journée',
+    description: 'Calcule les totaux d’encaissement (Espèces, TPE, Pourboires, Commissions) et vérifie les écarts de caisse.',
+    tags: ['POS Checkout'],
+    parameters: [
+      {
+        name: 'branchId',
+        in: 'query',
+        required: false,
+        schema: { type: 'string', format: 'uuid' },
+        description: 'Identifiant succursale',
+      },
+      {
+        name: 'date',
+        in: 'query',
+        required: false,
+        schema: { type: 'string' },
+        description: 'Date de réconciliation (YYYY-MM-DD)',
+      },
+      {
+        name: 'openingCashMad',
+        in: 'query',
+        required: false,
+        schema: { type: 'number' },
+        description: 'Fond de caisse initial en MAD',
+      },
+      {
+        name: 'actualCashMad',
+        in: 'query',
+        required: false,
+        schema: { type: 'number' },
+        description: 'Montant physique compté dans le tiroir-caisse en MAD',
+      },
+    ],
+    responses: {
+      200: {
+        description: 'Rapport de réconciliation de caisse généré avec succès',
+        content: {
+          'application/json': {
+            schema: CaisseReconciliationSchema,
+          },
+        },
+      },
+      400: {
+        description: 'Paramètres invalides',
+        content: {
+          'application/json': {
+            schema: BilingualErrorResponseSchema,
+          },
+        },
+      },
+    },
+  });
+
+  // Get Transaction by ID: GET /api/v1/checkout/{id}
+  registry.registerPath({
+    method: 'get',
+    path: '/api/v1/checkout/{id}',
+    summary: 'Détails d’un Encaissement de Caisse',
+    description: 'Récupère les détails financiers d’une transaction par son identifiant unique.',
+    tags: ['POS Checkout'],
+    parameters: [
+      {
+        name: 'id',
+        in: 'path',
+        required: true,
+        schema: { type: 'string', format: 'uuid' },
+        description: 'Identifiant unique de la transaction',
+      },
+    ],
+    responses: {
+      200: {
+        description: 'Détails de la transaction',
+        content: {
+          'application/json': {
+            schema: TransactionSchema,
+          },
+        },
+      },
+      404: {
+        description: 'Transaction introuvable',
         content: {
           'application/json': {
             schema: BilingualErrorResponseSchema,

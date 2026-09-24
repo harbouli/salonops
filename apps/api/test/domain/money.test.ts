@@ -42,5 +42,47 @@ describe('Money Value Object (Moroccan Dirham - MAD)', () => {
     assert.equal(a.isLessThan(b), true);
     assert.equal(b.isGreaterThan(a), true);
     assert.equal(a.equals(Money.fromMad(100)), true);
+    assert.equal(a.isGreaterThanOrEqual(Money.fromMad(100)), true);
+    assert.equal(a.isLessThanOrEqual(Money.fromMad(100)), true);
+    assert.equal(Money.zero().isZero(), true);
+    assert.equal(a.isPositive(), true);
+  });
+
+  it('should enforce non-negative amounts via ensureNonNegative', () => {
+    const valid = Money.fromMad(50);
+    assert.equal(valid.ensureNonNegative().amount, 50);
+
+    const negative = Money.fromMad(-20);
+    assert.throws(
+      () => negative.ensureNonNegative('Le montant de test'),
+      /Le montant de test ne peut pas être négatif/
+    );
+  });
+
+  it('should calculate cash drawer variance correctly (balanced, surplus, deficit)', () => {
+    const expected = Money.fromMad(2500);
+
+    // 1. Balanced: actual matches expected exactly
+    const balanced = Money.varianceCheck(expected, Money.fromMad(2500));
+    assert.equal(balanced.isBalanced, true);
+    assert.equal(balanced.isSurplus, false);
+    assert.equal(balanced.isDeficit, false);
+    assert.equal(balanced.variance.amount, 0);
+
+    // 2. Surplus: drawer has extra cash (e.g. unrecorded tip or customer excess)
+    const surplus = Money.varianceCheck(expected, Money.fromMad(2550));
+    assert.equal(surplus.isBalanced, false);
+    assert.equal(surplus.isSurplus, true);
+    assert.equal(surplus.isDeficit, false);
+    assert.equal(surplus.variance.amount, 50);
+    assert.equal(surplus.formattedVariance, '50.00 MAD');
+
+    // 3. Deficit: drawer is missing cash
+    const deficit = Money.varianceCheck(expected, Money.fromMad(2400));
+    assert.equal(deficit.isBalanced, false);
+    assert.equal(deficit.isSurplus, false);
+    assert.equal(deficit.isDeficit, true);
+    assert.equal(deficit.variance.amount, -100);
+    assert.equal(deficit.formattedVariance, '-100.00 MAD');
   });
 });
