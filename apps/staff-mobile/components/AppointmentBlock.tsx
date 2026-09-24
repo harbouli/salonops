@@ -49,7 +49,7 @@ export const AppointmentBlock = ({ appointment, top, height }: AppointmentBlockP
 
       {appointment.buffer && bufferHeight > 0 && (
         <View style={[styles.bufferBlock, { height: bufferHeight }]}>
-          <Text style={styles.bufferBlockText}>+{appointment.buffer} min (Wash/Prep)</Text>
+          <Text style={styles.bufferBlockText}>🔒 +{appointment.buffer} min buffer (rinçage / nettoyage)</Text>
         </View>
       )}
     </TouchableOpacity>

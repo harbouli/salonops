@@ -30,5 +30,14 @@
     "noShowsWeek": "الغيابات في الأسبوع",
     "monthlyLoss": "الخسارة الشهرية المقدرة",
     "recovery": "استرجع استثمارك في 5 أيام مع SalonOps!"
+  },
+  "booking": {
+    "title": "موعد جديد",
+    "servicesTitle": "قائمة الخدمات والأوقات الاحتياطية",
+    "timelinePreview": "معاينة الوقت والفاصل الاحتياطي",
+    "nextFreeSlot": "أقرب وقت متاح",
+    "collisionWarning": "تحذير تعارض في المواعيد",
+    "slotAvailable": "الوقت متاح ومتوافق",
+    "confirm": "تأكيد الموعد"
   }
 }

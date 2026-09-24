@@ -1,17 +1,24 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
-import { ShieldAlert } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+import { ShieldAlert, Plus, Calendar } from 'lucide-react-native';
 
 import { Theme } from '@/constants/theme';
 import { Timeline } from '@/components/Timeline';
-import { MOCK_STYLISTS, MOCK_APPOINTMENTS } from '@/mock/agendaData';
-import { Stylist, Appointment } from '@/types/agenda';
+import { MOCK_STYLISTS, useAppointments } from '@/mock/agendaData';
+import { Stylist } from '@/types/agenda';
 
 export default function AgendaScreen() {
+  const router = useRouter();
   const [selectedStylistId, setSelectedStylistId] = useState('1');
 
   const selectedStylist = MOCK_STYLISTS.find((s) => s.id === selectedStylistId);
-  const stylistAppointments = MOCK_APPOINTMENTS.filter((a) => a.stylistId === selectedStylistId);
+  const { appointments: stylistAppointments } = useAppointments(selectedStylistId);
+
+  const handleOpenNewAppointment = () => {
+    if (!selectedStylist) return;
+    router.push(`/new-appointment?stylistId=${selectedStylist.id}&time=10:00`);
+  };
 
   return (
     <View style={styles.container}>
@@ -32,7 +39,7 @@ export default function AgendaScreen() {
                     {stylist.name}
                   </Text>
                   <Text style={styles.stylistRole}>
-                    {stylist.isDayOff ? "En congé" : stylist.role}
+                    {stylist.isDayOff ? 'En congé' : stylist.role}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -47,6 +54,7 @@ export default function AgendaScreen() {
           <View style={styles.dayOffBanner}>
             <ShieldAlert color={Theme.colors.accentRose} size={28} />
             <Text style={styles.dayOffText}>{selectedStylist.name} est en congé aujourd'hui</Text>
+            <Text style={styles.dayOffSubtext}>Les réservations sont bloquées pour cette journée.</Text>
           </View>
         ) : (
           <Timeline 
@@ -55,6 +63,18 @@ export default function AgendaScreen() {
           />
         )}
       </View>
+
+      {/* Floating Action Button for Booking */}
+      {!selectedStylist?.isDayOff && (
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={handleOpenNewAppointment}
+          activeOpacity={0.85}
+        >
+          <Plus size={22} color="#000" />
+          <Text style={styles.fabText}>Nouveau RDV</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -70,6 +90,29 @@ const styles = StyleSheet.create({
   stylistNameActive: { color: Theme.colors.accent },
   stylistRole: { color: Theme.colors.textMuted, fontSize: 11 },
   timelineContainer: { flex: 1 },
-  dayOffBanner: { backgroundColor: Theme.colors.card, margin: 16, padding: 24, borderRadius: 16, alignItems: 'center', gap: 8, marginTop: 40 },
+  dayOffBanner: { backgroundColor: Theme.colors.card, margin: 16, padding: 24, borderRadius: 16, alignItems: 'center', gap: 8, marginTop: 40, borderWidth: 1, borderColor: '#7F1D1D' },
   dayOffText: { color: Theme.colors.textPrimary, fontSize: 16, fontWeight: 'bold' },
+  dayOffSubtext: { color: Theme.colors.textMuted, fontSize: 13, marginTop: 4 },
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 20,
+    backgroundColor: Theme.colors.accent,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderRadius: 30,
+    gap: 8,
+    shadowColor: Theme.colors.accent,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  fabText: {
+    color: '#000',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
 });
