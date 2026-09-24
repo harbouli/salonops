@@ -13,6 +13,7 @@ import { CheckoutController } from './presentation/controllers/checkout.controll
 import { AuthController } from './presentation/controllers/auth.controller';
 import { StorageController } from './presentation/controllers/storage.controller';
 import { DocsController } from './presentation/docs/docs.controller';
+import { WalkInController } from './presentation/controllers/walk-in.controller';
 
 import { createAppointmentRouter } from './presentation/routes/appointment.routes';
 import { createStylistRouter } from './presentation/routes/stylist.routes';
@@ -23,6 +24,7 @@ import { createAuthRouter } from './presentation/routes/auth.routes';
 import { createStorageRouter } from './presentation/routes/storage.routes';
 import { createHealthRouter } from './presentation/routes/health.routes';
 import { createDocsRouter } from './presentation/routes/docs.routes';
+import { createWalkInRouter } from './presentation/routes/walk-in.routes';
 import { isDocsRequest } from './presentation/docs/docs.middleware';
 import { errorHandlerMiddleware } from './presentation/middleware/error-handler.middleware';
 import { createAuthMiddleware, createOptionalAuthMiddleware } from './presentation/middleware/auth.middleware';
@@ -96,6 +98,7 @@ export function createApp(container: AppContainer = createContainer()): Express 
   const checkoutController = new CheckoutController(container.processCheckoutUseCase);
   const storageController = new StorageController(container.generateUploadUrlUseCase);
   const docsController = new DocsController();
+  const walkInController = new WalkInController(container.createWalkInUseCase);
 
   // Mount API Routers (Inbound Adapters)
   app.use('/', createDocsRouter(docsController));
@@ -103,6 +106,7 @@ export function createApp(container: AppContainer = createContainer()): Express 
   app.use('/api/v1/auth', createAuthRouter(authController, authGuard));
   app.use('/api/v1/stylists', optionalAuth, tenantGuard, createStylistRouter(stylistController));
   app.use('/api/v1/services', optionalAuth, tenantGuard, createServiceRouter(serviceController));
+  app.use('/api/v1/appointments/quick-walkin', optionalAuth, tenantGuard, createWalkInRouter(walkInController));
   app.use('/api/v1/appointments', optionalAuth, tenantGuard, createAppointmentRouter(appointmentController));
   app.use('/api/v1/clients', optionalAuth, tenantGuard, createClientRouter(clientController));
   app.use('/api/v1/checkout', optionalAuth, tenantGuard, createCheckoutRouter(checkoutController));

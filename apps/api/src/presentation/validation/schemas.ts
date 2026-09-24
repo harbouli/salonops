@@ -69,3 +69,12 @@ export const generatePresignedUrlSchema = z.object({
   folder: z.string().optional(),
 });
 
+export const createWalkInSchema = z.object({
+  branchId: z.string().uuid({ message: 'branchId doit être un UUID valide' }),
+  phone: z.string().min(1, 'Le numéro de téléphone est requis'),
+  fullName: z.string().min(1, 'Le nom complet est requis'),
+  serviceId: z.string().uuid({ message: 'serviceId doit être un UUID valide' }),
+  price: z.number().positive('Le prix doit être positif'),
+  durationMinutes: z.number().int().positive('La durée doit être positive'),
+  bufferMinutes: z.number().int().nonnegative().optional(),
+});
