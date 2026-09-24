@@ -93,7 +93,11 @@ export function createApp(container: AppContainer = createContainer()): Express 
     container.getClientFormulasUseCase,
     container.saveHairFormulaUseCase
   );
-  const checkoutController = new CheckoutController(container.processCheckoutUseCase);
+  const checkoutController = new CheckoutController(
+    container.processCheckoutUseCase,
+    container.getCaisseReconciliationUseCase,
+    container.transactionRepo
+  );
   const storageController = new StorageController(container.generateUploadUrlUseCase);
   const docsController = new DocsController();
 

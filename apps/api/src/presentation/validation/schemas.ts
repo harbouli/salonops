@@ -56,6 +56,13 @@ export const processCheckoutSchema = z.object({
   cardAmountMad: z.union([z.number(), z.string()]).optional(),
 });
 
+export const caisseReconciliationQuerySchema = z.object({
+  branchId: z.string().uuid({ message: 'branchId doit être un UUID valide' }).optional(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format de date invalide (YYYY-MM-DD)').optional(),
+  openingCashMad: z.union([z.number(), z.string()]).optional(),
+  actualCashMad: z.union([z.number(), z.string()]).optional(),
+});
+
 export const loginSchema = z.object({
   phone: z.string().min(1, 'Le numéro de téléphone est requis'),
   password: z.string().min(1, 'Le mot de passe est requis'),

@@ -1,9 +1,13 @@
-import { db, transactions, eq } from '@salonops/database';
+import { db, transactions, eq, and, gte, lte, desc } from '@salonops/database';
 import { ITransactionRepository } from '../../domain/ports/transaction-repository.port';
 import { Transaction, PaymentMethod } from '../../domain/models/transaction.entity';
 import { Money } from '../../domain/value-objects/money.vo';
+import { ITenantContextPort } from '../../domain/ports/tenant-context.port';
+import { withTenantBranchCondition } from './tenant-scoped-query.decorator';
 
 export class DrizzleTransactionRepository implements ITransactionRepository {
+  constructor(private readonly tenantPort?: ITenantContextPort) {}
+
   private toDomain(row: typeof transactions.$inferSelect): Transaction {
     return new Transaction({
       id: row.id,
@@ -30,6 +34,47 @@ export class DrizzleTransactionRepository implements ITransactionRepository {
       .limit(1);
 
     return row ? this.toDomain(row) : null;
+  }
+
+  public async findByAppointmentId(appointmentId: string): Promise<Transaction | null> {
+    const [row] = await db
+      .select()
+      .from(transactions)
+      .where(eq(transactions.appointmentId, appointmentId))
+      .limit(1);
+
+    return row ? this.toDomain(row) : null;
+  }
+
+  public async findByBranchAndDateRange(
+    branchId: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<Transaction[]> {
+    const tenantCondition = withTenantBranchCondition(
+      transactions.branchId,
+      branchId,
+      this.tenantPort?.getTenant()
+    );
+
+    const conditions = [
+      gte(transactions.createdAt, startDate),
+      lte(transactions.createdAt, endDate),
+    ];
+
+    if (tenantCondition) {
+      conditions.push(tenantCondition);
+    } else {
+      conditions.push(eq(transactions.branchId, branchId));
+    }
+
+    const rows = await db
+      .select()
+      .from(transactions)
+      .where(and(...conditions))
+      .orderBy(desc(transactions.createdAt));
+
+    return rows.map((r) => this.toDomain(r));
   }
 
   public async save(transaction: Transaction): Promise<Transaction> {

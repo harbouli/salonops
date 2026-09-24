@@ -70,7 +70,55 @@ export class Money {
     return this.cents < other.cents;
   }
 
+  public isGreaterThanOrEqual(other: Money): boolean {
+    return this.cents >= other.cents;
+  }
+
+  public isLessThanOrEqual(other: Money): boolean {
+    return this.cents <= other.cents;
+  }
+
   public isNegative(): boolean {
     return this.cents < 0;
+  }
+
+  public isZero(): boolean {
+    return this.cents === 0;
+  }
+
+  public isPositive(): boolean {
+    return this.cents > 0;
+  }
+
+  public abs(): Money {
+    return new Money(Math.abs(this.cents));
+  }
+
+  public difference(other: Money): Money {
+    return new Money(this.cents - other.cents);
+  }
+
+  public ensureNonNegative(fieldName = 'Le montant'): Money {
+    if (this.isNegative()) {
+      throw new InvalidValueException(`${fieldName} ne peut pas être négatif (${this.formatted()}).`);
+    }
+    return this;
+  }
+
+  public static varianceCheck(expected: Money, actual: Money): {
+    variance: Money;
+    isBalanced: boolean;
+    isSurplus: boolean;
+    isDeficit: boolean;
+    formattedVariance: string;
+  } {
+    const diff = actual.subtract(expected);
+    return {
+      variance: diff,
+      isBalanced: diff.isZero(),
+      isSurplus: diff.isPositive(),
+      isDeficit: diff.isNegative(),
+      formattedVariance: diff.formatted(),
+    };
   }
 }

@@ -18,6 +18,7 @@ export * from './use-cases/get-services.use-case';
 export * from './use-cases/search-clients.use-case';
 export * from './use-cases/hair-formulas.use-cases';
 export * from './use-cases/process-checkout.use-case';
+export * from './use-cases/get-caisse-reconciliation.use-case';
 export * from './use-cases/authenticate-user.use-case';
 export * from './use-cases/generate-upload-url.use-case';
 
