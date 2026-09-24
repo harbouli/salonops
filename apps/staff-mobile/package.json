@@ -38,7 +38,6 @@
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@salonops/config-typescript": "workspace:*",
-    "@types/node": "^24.13.5",
     "@types/react": "~19.3.0",
     "typescript": "^5.8.2"
   }
