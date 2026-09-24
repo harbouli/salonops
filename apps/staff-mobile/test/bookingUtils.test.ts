@@ -14,7 +14,7 @@ import { Appointment } from '../types/agenda';
 describe('SALON-3 / BOOK-02: Mobile Appointment Booking Prototype & Buffer Engine', () => {
   describe('1. Service Catalog with Predefined Durations and Required Buffers', () => {
     it('should have Coupe + Brushing configured as 45 min + 10 min buffer (150 MAD)', () => {
-      const coupe = SALON_SERVICES.find((s) => s.id === 'srv-coupe-brushing');
+      const coupe = SALON_SERVICES.find((s) => s.id === 'srv-coupe-brushing')!;
       assert.ok(coupe, 'Coupe service must exist');
       assert.strictEqual(coupe.durationMinutes, 45);
       assert.strictEqual(coupe.bufferMinutes, 10);
@@ -24,7 +24,7 @@ describe('SALON-3 / BOOK-02: Mobile Appointment Booking Prototype & Buffer Engin
     });
 
     it('should have Coloration Racine configured as 1h45 (105 min) + 15 min buffer (350 MAD)', () => {
-      const coloration = SALON_SERVICES.find((s) => s.id === 'srv-coloration-racine');
+      const coloration = SALON_SERVICES.find((s) => s.id === 'srv-coloration-racine')!;
       assert.ok(coloration, 'Coloration service must exist');
       assert.strictEqual(coloration.durationMinutes, 105);
       assert.strictEqual(coloration.bufferMinutes, 15);
@@ -34,7 +34,7 @@ describe('SALON-3 / BOOK-02: Mobile Appointment Booking Prototype & Buffer Engin
     });
 
     it('should have Lissage Protéine configured as 3h00 (180 min) + 20 min buffer (900 MAD)', () => {
-      const lissage = SALON_SERVICES.find((s) => s.id === 'srv-lissage-proteine');
+      const lissage = SALON_SERVICES.find((s) => s.id === 'srv-lissage-proteine')!;
       assert.ok(lissage, 'Lissage service must exist');
       assert.strictEqual(lissage.durationMinutes, 180);
       assert.strictEqual(lissage.bufferMinutes, 20);
