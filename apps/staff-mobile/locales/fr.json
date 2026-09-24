@@ -30,5 +30,14 @@
     "noShowsWeek": "No-shows / semaine",
     "monthlyLoss": "Perte mensuelle estimée",
     "recovery": "Rentabilisé en 5 jours avec SalonOps !"
+  },
+  "booking": {
+    "title": "Nouveau Rendez-vous",
+    "servicesTitle": "Catalogue Prestations & Buffers",
+    "timelinePreview": "Aperçu Timeline & Buffer",
+    "nextFreeSlot": "Prochain créneau libre",
+    "collisionWarning": "Alerte de collision (double-booking)",
+    "slotAvailable": "Créneau disponible & conforme",
+    "confirm": "Confirmer le rendez-vous"
   }
 }
