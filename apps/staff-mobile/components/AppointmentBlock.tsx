@@ -5,6 +5,8 @@ import { Clock } from 'lucide-react-native';
 import { Theme } from '@/constants/theme';
 import { AppointmentBlockProps } from '@/types/agenda';
 
+import { getStatusColor } from '@/lib/statusColors';
+
 const MINUTE_HEIGHT = 80 / 60;
 
 export const AppointmentBlock = ({ appointment, top, height }: AppointmentBlockProps) => {
@@ -15,18 +17,7 @@ export const AppointmentBlock = ({ appointment, top, height }: AppointmentBlockP
   };
 
   const bufferHeight = appointment.buffer ? parseInt(appointment.buffer) * MINUTE_HEIGHT : 0;
-  
-  const getStatusColor = () => {
-    switch (appointment.status) {
-      case 'CONFIRMED': return Theme.colors.badgeConfirmed;
-      case 'IN_CHAIR': return Theme.colors.badgeInChair;
-      case 'COMPLETED': return Theme.colors.textMuted;
-      case 'CANCELLED': return Theme.colors.accentRose;
-      default: return Theme.colors.accent;
-    }
-  };
-
-  const statusColor = getStatusColor();
+  const statusColor = getStatusColor(appointment.status);
 
   return (
     <TouchableOpacity 
