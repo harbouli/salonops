@@ -1,11 +1,11 @@
 import { INotificationPort } from '../../domain/ports/notification.port';
-import { PhoneNumber } from '../../domain/value-objects/phone-number.vo';
+import { MoroccanPhoneNumber } from '../../domain/value-objects/phone-number.vo';
 
 export class SendReminderUseCase {
   constructor(private readonly notificationPort: INotificationPort) {}
 
   async execute(phone: string, message: string): Promise<void> {
-    const phoneNumber = PhoneNumber.create(phone);
+    const phoneNumber = MoroccanPhoneNumber.create(phone);
     await this.notificationPort.sendReminder({
       to: phoneNumber.getValue(),
       message,

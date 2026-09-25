@@ -1,13 +1,13 @@
 import { InvalidValueException } from '../exceptions/domain.exception';
 
-export class PhoneNumber {
+export class MoroccanPhoneNumber {
   private readonly value: string;
 
   private constructor(value: string) {
     this.value = value;
   }
 
-  public static create(phone: string): PhoneNumber {
+  public static create(phone: string): MoroccanPhoneNumber {
     const cleaned = phone.replace(/\s+/g, '');
     
     if (!/^(?:\+212|0)[67]\d{8}$/.test(cleaned)) {
@@ -19,7 +19,7 @@ export class PhoneNumber {
       normalized = '+212' + normalized.substring(1);
     }
 
-    return new PhoneNumber(normalized);
+    return new MoroccanPhoneNumber(normalized);
   }
 
   public getValue(): string {
