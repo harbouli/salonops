@@ -1,7 +1,7 @@
 import { InvalidValueException } from '../exceptions/domain.exception';
 
 export class MoroccanPhoneNumber {
-  private readonly value: string;
+  public readonly value: string;
 
   private constructor(value: string) {
     this.value = value;
@@ -23,6 +23,10 @@ export class MoroccanPhoneNumber {
   }
 
   public getValue(): string {
+    return this.value;
+  }
+
+  public toFormatted(): string {
     return this.value;
   }
 }
