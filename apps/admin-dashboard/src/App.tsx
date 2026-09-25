@@ -9,6 +9,7 @@ import {
   Clock,
   Scissors,
   ChevronRight,
+  BookOpen,
 } from 'lucide-react';
 
 export default function App() {
@@ -53,6 +54,16 @@ export default function App() {
                 </button>
               );
             })}
+
+            <a
+              href="http://localhost:3000/reference"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-[#A1A1AA] hover:bg-[#222228] hover:text-[#D4AF37] transition-all"
+            >
+              <BookOpen size={18} />
+              Documentation API
+            </a>
           </nav>
         </div>
 

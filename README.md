@@ -1,10 +1,9 @@
 # SalonOps Morocco 🇲🇦
 
 [![CI Status](https://img.shields.io/badge/CI-GitHub%20Actions-22c55e?logo=github-actions)](.github/workflows/ci.yml)
-[![Turborepo](https://img.shields.io/badge/Orchestration-Turborepo-ef4444?logo=turborepo)](https://turbo.build/)
 [![Package Manager](https://img.shields.io/badge/pnpm-v11.21.0-orange?logo=pnpm)](https://pnpm.io/)
-[![Expo](https://img.shields.io/badge/Expo-SDK%2052-000020?logo=expo)](https://expo.dev/)
-[![Express](https://img.shields.io/badge/Backend-Express.js%20(Node%2022)-black?logo=express)](https://expressjs.com/)
+[![Expo](https://img.shields.io/badge/Expo-SDK%2057-000020?logo=expo)](https://expo.dev/)
+[![Express](https://img.shields.io/badge/Backend-Express.js%20(Node%2024)-black?logo=express)](https://expressjs.com/)
 [![Drizzle ORM](https://img.shields.io/badge/ORM-Drizzle%20ORM-C5F74F?logo=drizzle)](https://orm.drizzle.team/)
 [![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL%2016-336791?logo=postgresql)](https://www.postgresql.org/)
 [![License](https://img.shields.io/badge/License-Proprietary-blue)](#)
@@ -19,7 +18,7 @@ Running a salon in Morocco involves distinct operational realities that Western 
 1. **Per-Stylist Client Loyalty:** Moroccan clients book specific artists (*Fatima*, *Salma*, *Youssef*), not generic salon chairs.
 2. **Buffer Times & Collision Prevention:** Chemical processes (lissage, balayage) require strict service durations and cleaning buffers to prevent floor chaos.
 3. **No-Show Mitigation:** 15–25% of salon slots are lost to no-shows. Automated WhatsApp & SMS notifications at 24h and 2h recover thousands of MAD monthly.
-4. **"Notebook Killer" Color Formula Vault:** Stylists maintain paper notebooks for client bleach ratios, developer volumes, and processing times. SalonOps digitizes this with Cloudflare R2 transformation photos.
+4. **"Notebook Killer" Color Formula Vault:** Stylists maintain paper notebooks for client bleach ratios, developer volumes, and processing times. SalonOps digitizes this with MinIO S3-compatible transformation photo storage.
 5. **Moroccan Payment Realities:** Seamless split checkout between cash, TPE bank card, and direct stylist tips.
 6. **Bilingual Floor Experience:** Instant toggle between French and Moroccan Darija with native Right-to-Left (RTL) layout support.
 
@@ -30,16 +29,16 @@ Running a salon in Morocco involves distinct operational realities that Western 
 ```mermaid
 graph TD
     subgraph "Clients & Floor Applications"
-        MOB["📱 <b>staff-mobile</b><br/>React Native (Expo SDK 52)<br/>Hairdresser Floor App (FR/Darija RTL)"]
-        ADMIN["💻 <b>admin-dashboard</b><br/>React.js 18.3 + Vite<br/>Owner Financials & Multi-Branch POS"]
-        CLIENT["🌐 <b>client-web</b><br/>Responsive React.js 18.3<br/>Instagram Bio Booking & Digital Wallet"]
+        MOB["📱 <b>staff-mobile</b><br/>React Native (Expo SDK 57)<br/>Hairdresser Floor App (FR/Darija RTL)"]
+        ADMIN["💻 <b>admin-dashboard</b><br/>React.js 19.3 + Vite<br/>Owner Financials & Multi-Branch POS"]
+        CLIENT["🌐 <b>client-web</b><br/>Responsive React.js 19.3<br/>Instagram Bio Booking & Digital Wallet"]
     end
 
     subgraph "Backend Services"
-        API["⚙️ <b>apps/api</b><br/>Node.js 22 LTS + Express.js<br/>JWT Auth, Stylist RBAC & Concurrency Engine"]
+        API["⚙️ <b>apps/api</b><br/>Node.js 24 LTS + Express.js<br/>JWT Auth, Stylist RBAC & Concurrency Engine"]
         REDIS[("⚡ <b>Redis 7</b><br/>Redlock Slot Reservation<br/>Rolling Revenue Cache")]
         POSTGRES[("🗄️ <b>PostgreSQL 16</b><br/>Multi-Branch Relational Data")]
-        R2["☁️ <b>Cloudflare R2</b><br/>Zero-Egress Transformation Photos"]
+        MINIO[("🪣 <b>MinIO S3</b><br/>Self-Hosted S3 Object Storage<br/>Client Transformation Photos")]
     end
 
     subgraph "Shared Packages (packages/)"
@@ -55,7 +54,7 @@ graph TD
     API --> TYPES
     API --> DB
     API --> REDIS
-    API --> R2
+    API --> MINIO
     DB --> POSTGRES
 ```
 
@@ -70,15 +69,18 @@ salonops/
 │       ├── ci.yml                 # PR & Push validation (lint, typecheck, build, docker check)
 │       └── cd.yml                 # Automated Docker container build & web asset release
 ├── apps/
-│   ├── staff-mobile/              # React Native Expo SDK 52 mobile app for hairdressers
+│   ├── staff-mobile/              # React Native Expo SDK 57 mobile app for hairdressers
 │   ├── api/                       # Express.js REST API with Drizzle ORM & Redis Redlock
-│   ├── admin-dashboard/           # React 18.3 + Vite back-office dashboard for salon owners
-│   └── client-web/                # Responsive React 18.3 booking web client (Bio link)
+│   ├── admin-dashboard/           # React 19.3 + Vite back-office dashboard for salon owners
+│   └── client-web/                # Responsive React 19.3 booking web client (Bio link)
 ├── packages/
 │   ├── database/                  # Drizzle ORM schema, migrations, connection pool & seeds
 │   ├── shared-types/              # Shared TypeScript models, enums, DTOs & interfaces
 │   ├── config-typescript/         # Reusable tsconfig base, node, react & react-native presets
 │   └── config-eslint/             # Shared ESLint configuration presets
+├── docker-compose.yml             # Local infrastructure (PostgreSQL 16, Redis 7 & MinIO S3)
+├── docker-compose.dev.yml         # Full-stack containerized development with live HMR
+├── docker-compose.prod.yml        # Full-stack production with Nginx web servers & healthchecks
 ├── pnpm-workspace.yaml            # pnpm workspace definition
 ├── turbo.json                     # Turborepo task pipeline & caching
 ├── package.json                   # Root scripts & dependencies
@@ -92,33 +94,61 @@ salonops/
 | Layer | Technology | Key Capabilities |
 |---|---|---|
 | **Monorepo Engine** | **pnpm v11 + Turborepo** | Fast workspace hoisting, symlinked internal packages, zero-overhead task caching |
-| **Mobile App** | **Expo SDK 52 (React Native)** | Offline SQLite support, native camera uploads, RTL Arabic/Darija engine |
-| **Backend API** | **Express.js (Node 22 LTS)** | Helmet, CORS, Argon2/JWT authentication, RBAC authorization guard |
+| **Mobile App** | **Expo SDK 57 (React Native)** | Offline SQLite support, native camera uploads, RTL Arabic/Darija engine |
+| **Backend API** | **Express.js (Node 24 LTS)** | Helmet, CORS, Argon2/JWT authentication, RBAC authorization guard |
 | **ORM & Database** | **Drizzle ORM + PostgreSQL 16** | Pure type-safe SQL queries, zero runtime bloat, `drizzle-kit` automated migrations |
 | **Concurrency & Cache** | **Redis 7 (ioredis + Redlock)** | Distributed lock guard eliminating appointment double-booking collisions |
-| **Web Dashboards** | **React 18.3 + Vite + Tailwind** | Sub-second HMR, luxury dark gold aesthetic (`#121214` & `#D4AF37`) |
-| **Storage & Media** | **Cloudflare R2** | High-resolution before/after hair formula transformation photo vault |
+| **Web Dashboards** | **React 19.3 + Vite + Tailwind** | Sub-second HMR, luxury dark gold aesthetic (`#121214` & `#D4AF37`) |
+| **Storage & Media** | **MinIO S3 (Object Storage)** | High-resolution before/after hair formula transformation photo vault (S3-compatible with presigned URLs) |
+
+---
+
+## 🐳 Docker Deployment Modes
+
+SalonOps provides three flexible Docker orchestration modes:
+
+| Mode | Command | Scope & Purpose |
+|---|---|---|
+| **1. Infra-Only (Recommended)** | `docker compose up -d` | Runs Postgres 16, Redis 7 & MinIO S3 in background while you run apps on host with `pnpm dev` |
+| **2. Full-Stack Dev** | `docker compose -f docker-compose.dev.yml up` | Completely containerized development with live code mounts, `tsx watch` & Vite HMR |
+| **3. Full-Stack Prod** | `docker compose -f docker-compose.prod.yml up -d` | Hardened production containers, optimized Nginx web servers, healthchecks & restart policies |
 
 ---
 
 ## 🚀 Quick Start
 
 ### 1. Prerequisites
-- **Node.js**: `v20.0.0` or higher (Node 22 LTS recommended)
+- **Node.js**: `v24.0.0` or higher (Node 24 LTS recommended)
 - **pnpm**: `v11.0.0` or higher (`corepack enable && corepack prepare pnpm@11.21.0 --activate`)
-- **Docker**: For running local PostgreSQL and Redis instances
+- **Docker**: For running local PostgreSQL 16, Redis 7, and MinIO S3 object storage
 
-### 2. Installation
+### 2. Start Local Infrastructure
+```bash
+# Option A: Start backend infrastructure dependencies only
+docker compose up -d
+
+# Option B: Run entire monorepo in containerized development with hot-reloading
+docker compose -f docker-compose.dev.yml up
+
+# Access Services:
+# - MinIO Web Console: http://localhost:9001 (User: minioadmin / Pass: minioadmin)
+# - MinIO S3 API:      http://localhost:9000
+# - Express API:       http://localhost:4000
+# - Admin Dashboard:   http://localhost:3000
+# - Client Web:        http://localhost:3001
+```
+
+### 3. Installation (for Host Development)
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/salonops.git
+git clone https://github.com/harbouli/salonops.git
 cd salonops
 
-# Install dependencies across all 9 packages
+# Install dependencies across all workspace packages
 pnpm install
 ```
 
-### 3. Environment Configuration
+### 4. Environment Configuration
 Copy `.env.example` templates to `.env`:
 ```bash
 # In packages/database
@@ -128,15 +158,23 @@ cp packages/database/.env.example packages/database/.env
 cp apps/api/.env.example apps/api/.env
 ```
 
-Ensure your `DATABASE_URL` points to your PostgreSQL database:
+Ensure your `apps/api/.env` includes database, Redis, and MinIO S3 credentials:
 ```env
 DATABASE_URL="postgres://postgres:postgres@localhost:5432/salonops"
 REDIS_URL="redis://localhost:6379"
 JWT_SECRET="super-secret-jwt-key-for-moroccan-salon-platform"
 PORT=4000
+
+# MinIO S3 Object Storage
+MINIO_ENDPOINT="localhost"
+MINIO_PORT=9000
+MINIO_USE_SSL=false
+MINIO_ACCESS_KEY="minioadmin"
+MINIO_SECRET_KEY="minioadmin"
+MINIO_BUCKET_NAME="salonops-media"
 ```
 
-### 4. Database Setup (Drizzle ORM)
+### 5. Database Setup (Drizzle ORM)
 ```bash
 # Generate SQL migrations from schema
 pnpm --filter @salonops/database db:generate
@@ -200,7 +238,7 @@ Automated with **GitHub Actions**:
 
 - [`apps/staff-mobile/README.md`](apps/staff-mobile/README.md) — React Native Expo floor application
 - [`apps/api/README.md`](apps/api/README.md) — Node.js & Express.js REST API
-- [`apps/admin-dashboard/README.md`](apps/admin-dashboard/README.md) — React 18.3 owner analytics & POS
+- [`apps/admin-dashboard/README.md`](apps/admin-dashboard/README.md) — React 19.3 owner analytics & POS
 - [`apps/client-web/README.md`](apps/client-web/README.md) — Client web booking interface
 - [`packages/database/README.md`](packages/database/README.md) — Drizzle ORM schema & migrations
 - [`packages/shared-types/README.md`](packages/shared-types/README.md) — Shared TypeScript domain models & DTOs
