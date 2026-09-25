@@ -12,6 +12,7 @@ import { MinioStorageAdapter } from './storage/minio-storage.adapter';
 import { IObjectStoragePort } from '../domain/ports/object-storage.port';
 import { ITenantContextPort } from '../domain/ports/tenant-context.port';
 import { AsyncLocalStorageTenantContextAdapter } from './tenant/async-local-storage-tenant-context.adapter';
+import { MemoryWalkInTicketAdapter } from './walk-in/memory-walk-in-ticket.adapter';
 
 import { BookAppointmentUseCase } from '../application/use-cases/book-appointment.use-case';
 import { GetAppointmentsUseCase } from '../application/use-cases/get-appointments.use-case';
@@ -27,6 +28,7 @@ import { ProcessCheckoutUseCase } from '../application/use-cases/process-checkou
 import { GetCaisseReconciliationUseCase } from '../application/use-cases/get-caisse-reconciliation.use-case';
 import { AuthenticateUserUseCase } from '../application/use-cases/authenticate-user.use-case';
 import { GenerateUploadUrlUseCase } from '../application/use-cases/generate-upload-url.use-case';
+import { CreateWalkInUseCase } from '../application/use-cases/create-walk-in.use-case';
 
 export interface AppContainer {
   // Repositories & Adapters (Driven Adapters)
@@ -42,6 +44,7 @@ export interface AppContainer {
   tokenService: JwtTokenAdapter;
   storageAdapter: IObjectStoragePort;
   tenantContextPort: ITenantContextPort;
+  walkInTicketPort: MemoryWalkInTicketAdapter;
 
   // Use Cases (Application Layer Inbound Ports)
   bookAppointmentUseCase: BookAppointmentUseCase;
@@ -56,6 +59,7 @@ export interface AppContainer {
   getCaisseReconciliationUseCase: GetCaisseReconciliationUseCase;
   authenticateUserUseCase: AuthenticateUserUseCase;
   generateUploadUrlUseCase: GenerateUploadUrlUseCase;
+  createWalkInUseCase: CreateWalkInUseCase;
 }
 
 
@@ -75,6 +79,7 @@ export function createContainer(): AppContainer {
   const passwordHasher = new Argon2PasswordHasherAdapter();
   const tokenService = new JwtTokenAdapter();
   const storageAdapter = new MinioStorageAdapter();
+  const walkInTicketPort = new MemoryWalkInTicketAdapter();
 
   // Application Use Cases
   const bookAppointmentUseCase = new BookAppointmentUseCase(
@@ -114,6 +119,12 @@ export function createContainer(): AppContainer {
     tokenService
   );
   const generateUploadUrlUseCase = new GenerateUploadUrlUseCase(storageAdapter);
+  const createWalkInUseCase = new CreateWalkInUseCase(
+    appointmentRepo,
+    clientRepo,
+    stylistRepo,
+    walkInTicketPort
+  );
 
   return {
     appointmentRepo,
@@ -128,6 +139,7 @@ export function createContainer(): AppContainer {
     tokenService,
     storageAdapter,
     tenantContextPort,
+    walkInTicketPort,
 
     bookAppointmentUseCase,
     getAppointmentsUseCase,
@@ -141,6 +153,7 @@ export function createContainer(): AppContainer {
     getCaisseReconciliationUseCase,
     authenticateUserUseCase,
     generateUploadUrlUseCase,
+    createWalkInUseCase,
   };
 }
 
